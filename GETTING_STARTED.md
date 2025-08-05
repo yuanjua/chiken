@@ -28,26 +28,30 @@ By entering model names, you'll be prompted to select a model from the provider.
 When Zotero is running on your computer, ChiKen can access your Zotero collections and items locally.
 
 Simply select the collections you want to include in your Knowledge Base. Then click "Create Knowledge Base from Collections" to start the process. You will then see it appears in the Knowledge Base list! See the next step for how to use it.
+
 <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img src="assets/captures/create-from-collections.png" alt="Select Collections to Create Knowledge Base" style="width: 23%;">  
     <img src="assets/captures/kbs-mcp.png" alt="KBS MCP" style="width: 41%;">
 </div>
 
 
-You can create a Knowledge Base (KBS) from existing Zotero collections
+You can create a Knowledge Base (KBS) from existing Zotero collections.
 
 
 ### 3. Start MCP Server
 
 If you have subscribed to Advanced LLMs like Claude Desktop, you can start the MCP server to expose your knowledge bases to these models. 
 <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
-    <img src="assets/captures/mcp-config.png" alt="MCP Config" style="width: 48%;">
+    <img src="assets/captures/mcp-config.png" alt="MCP Config" style="width: 60%;">
 </div>
 
 The JSON may vary for different clients, *e.g.* `streamableHttp` vs `http` vs `streamable-http`.
 
 Now you can leave ChiKen running in the background, and use your favorite LLM client to connect to the MCP server.
-![MCP Example](assets/mcp-example.gif)
+
+<div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
+    <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 69%;">
+</div>
 
 The local Chat agent is not optimized for calling tools yet. It is fixed to call once `search_documents` each turn if any knowledge base is active. This is because local models are not good at tool calling, and we don't want you to call paid api in here yet (not tested nor optimized for token usage).
 

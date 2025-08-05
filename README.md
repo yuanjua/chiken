@@ -18,11 +18,13 @@
 
 *   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
 
-![MCP Example](assets/mcp-example.gif)
+<div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
+    <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 69%;">
+</div>
 
 ## 🚀 Quick Start
 
-Simply install choosing the installer for your platform in Release.
+Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
 (Currently only MacOS and Windows builds are tested.)
 
 We recommend [installing Ollama](https://ollama.com/) for simple chat and embedding. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
