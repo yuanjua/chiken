@@ -40,6 +40,12 @@ For more detailed instructions, check out the [Getting Started Guide](GETTING_ST
 *   **Multi-Modal Understanding**: Take advantage of the latest advancements in local multi-modal LLMs to handle images, PDFs, and more.
 *   ⁉️**More Tests**: Adding comprehensive tests.
 
+## 🤝 Contributing
+
+We’re excited to welcome contributions!  
+A dedicated section with contribution guidelines and instructions is **coming soon**.  
+If you have feature requests, bug reports, or ideas, feel free to open an issue or discussion in the meantime.
+
 <!-- contributing: 
 communitiy discussions/ feature requests, UI UX suggestions, introducing to your non-coder friend and send feedbacks. -->
 

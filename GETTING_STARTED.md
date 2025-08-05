@@ -35,7 +35,7 @@ Simply select the collections you want to include in your Knowledge Base. Then c
 </div>
 
 
-You can create a Knowledge Base (KBS) from existing Zotero collections.
+You can create a Knowledge Base from existing Zotero collections.
 
 
 ### 3. Start MCP Server
