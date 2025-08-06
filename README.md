@@ -18,7 +18,7 @@
 
 *   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
 
-<img src="assets/example-mention-doc.gif" height="420"/> <img src="assets/mcp-example.gif" height="420"/>
+<img src="assets/example-mention-doc.gif" height="320"/> <img src="assets/mcp-example.gif" height="320"/>
 
 ## 🚀 Quick Start
 
