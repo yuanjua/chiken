@@ -8,50 +8,30 @@ on:
   workflow_dispatch:
     inputs:
       release_name:
-        description: "Release title"
+        description: "Release name and tag"
         required: true
       release_type:
         description: "Type of release (draft, private, public)"
         required: true
         default: "draft"
       release_notes:
-        description: "Release notes"
+        description: "Release notes (optional)"
         required: false
 
 jobs:
-  create_release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    outputs:
-      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Create a release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.ref || github.ref_name }}
-          release_name: ${{ github.event.inputs.release_name }}
-          body: ${{ github.event.inputs.release_notes }}
-          draft: ${{ github.event.inputs.release_type == 'draft' }} # not visible to the public
-          prerelease: ${{ github.event.inputs.release_type == 'private' }} # visible only to collaborators
-
   build:
     name: Build for ${{ matrix.os }} and Upload Artifacts
-    needs: create_release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest] # builds for each platform, in seperate vm's, in this order
-    continue-on-error: true
+      fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch all history for proper Git submodule initialization
-          ref: ${{ github.event.inputs.ref || github.ref }} # checks out code you specify in github UI
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -113,8 +93,8 @@ jobs:
         run: |
           CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID Application")
           CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-          echo "Certificate imported."
+          echo "Found Certificate ID: $CERT_ID"
+          echo "APPLE_SIGNING_IDENTITY=$CERT_ID" >> $GITHUB_ENV
 
       - name: Build Python sidecar
         shell: bash # ensure cross-platform compatibility with Bash syntax
@@ -122,7 +102,6 @@ jobs:
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             pnpm build:sidecar-linux
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            export APPLE_SIGNING_IDENTITY="${{ env.CERT_ID }}"
             pnpm build:sidecar-macos
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
             pnpm build:sidecar-winos
@@ -142,13 +121,13 @@ jobs:
           # Signing/notarization secrets (only used on macOS)
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
           # Notarization API Key
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }} # APPLE_API_KEY is the ID in tauri
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
         with:
-          tagName: ${{ github.ref_name }}
+          tagName: ${{ github.event.inputs.release_name }}
           releaseName: ${{ github.event.inputs.release_name }}
           releaseBody: ${{ github.event.inputs.release_notes }}
           releaseDraft: ${{ github.event.inputs.release_type == 'draft' }}
