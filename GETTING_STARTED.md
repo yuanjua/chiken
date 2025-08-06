@@ -47,7 +47,7 @@ If you have subscribed to Advanced LLMs like Claude Desktop, you can start the M
 
 The JSON may vary for different clients, *e.g.* `streamableHttp` vs `http` vs `streamable-http`.
 
-Now you can leave ChiKen running in the background, and use your favorite LLM client to connect to the MCP server.
+Now you can leave ChiKen running in the background, and use your favorite LLM client to connect to the MCP server. This example uses VS Code Copilot to call our built-in MCP tools.
 
 <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 69%;">

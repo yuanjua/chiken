@@ -125,6 +125,7 @@ class UserConfig(BaseModel):
         )
 
         config = {
+            "provider": self.provider,
             "model_name": self.model_name,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,

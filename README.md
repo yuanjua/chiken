@@ -25,10 +25,12 @@
 
 ## 🚀 Quick Start
 
-Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
+**Installation**: Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
 (Currently only MacOS and Windows builds are tested.)
 
-We recommend [installing Ollama](https://ollama.com/) for simple chat and embedding. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
+**Dependency**: PDF and plain text files are supported. Other file types (.docx, etc.) requires [pandoc](https://pandoc.org/) to be installed in your system.
+
+We recommend [Ollama](https://ollama.com/) for simple chat and embedding—it’s easy to install and use. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
 
 For more detailed instructions, check out the [Getting Started Guide](GETTING_STARTED.md).
 
