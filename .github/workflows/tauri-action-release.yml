@@ -31,7 +31,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v0.1.${{ github.run_number }}
+          tag_name: ${{ github.event.inputs.ref || github.ref_name }}
           release_name: ${{ github.event.inputs.release_name }}
           body: ${{ github.event.inputs.release_notes }}
           draft: ${{ github.event.inputs.release_type == 'draft' }} # not visible to the public
