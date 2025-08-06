@@ -226,10 +226,6 @@ export class UploadService {
    * Validate file before upload
    */
   private validateFile(file: File): { valid: boolean; error?: string } {
-    // Check file type
-    if (!file.type.startsWith("application/pdf")) {
-      return { valid: false, error: "Only PDF files are supported" };
-    }
 
     // Check file size (50MB limit)
     if (file.size > FILE_SIZE_LIMITS.PDF_UPLOAD) {

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useUnifiedUpload } from "@/hooks/useUnifiedUpload";
 import { type UploadFile } from "@/lib/upload-service";
 import { FILE_SIZE_LIMITS, ALLOWED_FILE_TYPES } from "@/lib/file-utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadZoneProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ interface FileUploadZoneProps {
 
 export function FileUploadZone({ onClose }: FileUploadZoneProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Use unified upload for consistency with other components
   const { uploadFiles, uploads, isUploading, removeUpload } = useUnifiedUpload({
@@ -27,10 +29,19 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
     refreshDocuments: true,
     onUploadComplete: (fileId: string, filename: string) => {
       console.log("FileUploadZone: Upload completed:", filename);
+      toast({
+        title: "Upload Successful",
+        description: `${filename} uploaded successfully`,
+      });
     },
     onUploadError: (fileId: string, error: string) => {
       console.error("FileUploadZone: Upload error:", error);
       setUploadError(error);
+      toast({
+        title: "Upload Failed",
+        description: error,
+        variant: "destructive",
+      });
     },
   });
 
@@ -41,13 +52,23 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
       // Validate files
       const validFiles = acceptedFiles.filter((file) => {
         if (file.size > FILE_SIZE_LIMITS.GENERAL_UPLOAD) {
-          setUploadError(
-            `File ${file.name} is too large. Maximum size is ${FILE_SIZE_LIMITS.GENERAL_UPLOAD / 1024 / 1024}MB.`,
-          );
+          const errorMsg = `File ${file.name} is too large. Maximum size is ${FILE_SIZE_LIMITS.GENERAL_UPLOAD / 1024 / 1024}MB.`;
+          setUploadError(errorMsg);
+          toast({
+            title: "File Too Large",
+            description: errorMsg,
+            variant: "destructive",
+          });
           return false;
         }
         if (!ALLOWED_FILE_TYPES.ALL.includes(file.type as any)) {
-          setUploadError(`File type ${file.type} is not supported.`);
+          const errorMsg = `File type ${file.type} is not supported.`;
+          setUploadError(errorMsg);
+          toast({
+            title: "Unsupported File Type",
+            description: errorMsg,
+            variant: "destructive",
+          });
           return false;
         }
         return true;

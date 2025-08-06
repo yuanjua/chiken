@@ -385,7 +385,11 @@ async def extract_text_from_pdf(file: UploadFile = File(...)):
         
         # Provide more specific error messages based on the exception type
         error_msg = str(e)
-        if "remote parser" in error_msg.lower() or "cannot connect" in error_msg.lower():
+        if "MissingDependencyError" in error_msg or "Pandoc" in error_msg:
+            detail = (f"Missing system dependency: {str(e)}. "
+                     "Please install Pandoc version 2 or above on your system and ensure it's available in $PATH. "
+                     "This is required for processing DOCX and other document formats.")
+        elif "remote parser" in error_msg.lower() or "cannot connect" in error_msg.lower():
             detail = (f"Remote PDF parser failed: {str(e)}. "
                      "The remote parser server may be unavailable. "
                      "Try switching to Kreuzberg parser in settings for more reliable processing.")
@@ -439,14 +443,6 @@ async def upload_document_unified(
     Returns the content hash (SHA256) as key for mentioning.
     """
     try:
-        # Validate file type
-        if not file.content_type or not file.content_type.startswith('application/pdf'):
-            return {
-                "success": False,
-                "error": "Only PDF files are supported for upload",
-                "detail": "Invalid file type"
-            }
-
         # Validate file size (100MB limit)
         if file.size and file.size > 100 * 1024 * 1024:
             return {
@@ -457,7 +453,7 @@ async def upload_document_unified(
         
         # Read PDF content
         pdf_bytes = await file.read()
-        filename = file.filename or "uploaded.pdf"
+        filename = file.filename or "untitled"
         
         # Ensure the reserved knowledge base exists
         db_manager = await get_database_manager()
@@ -517,11 +513,27 @@ async def upload_document_unified(
         }
     except Exception as e:
         logger.error(f"Failed to upload document {file.filename}: {e}")
-        return {
-            "success": False,
-            "error": f"Failed to upload document: {str(e)}",
-            "detail": str(e)
-        }
+        
+        # Check for specific error types
+        error_msg = str(e)
+        if "MissingDependencyError" in error_msg or "Pandoc" in error_msg:
+            return {
+                "success": False,
+                "error": "Missing system dependency: Pandoc version 2 or above is required. Please install it on your system and ensure it's available in $PATH.",
+                "detail": f"System dependency error: {str(e)}"
+            }
+        elif "No text could be extracted" in error_msg or "No text extracted" in error_msg:
+            return {
+                "success": False,
+                "error": "No text could be extracted from this document. This could be due to the document being scanned images, corrupted, or incompatible with the current parser.",
+                "detail": f"Text extraction failed: {str(e)}"
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Failed to upload document: {str(e)}",
+                "detail": str(e)
+            }
 
 @router.get("/documents/{key}")
 async def get_document_by_key(key: str):

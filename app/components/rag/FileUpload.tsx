@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Upload, AlertCircle, CheckCircle, Hash } from "lucide-react";
 import { FILE_SIZE_LIMITS } from "@/lib/file-utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface KnowledgeBaseInfo {
   id: string;
@@ -33,13 +34,23 @@ export function FileUpload({
 }: FileUploadProps) {
   const [knowledgeBases] = useAtom(knowledgeBasesAtom);
   const [activeKbId] = useAtom(activeKnowledgeBaseIdAtom);
+  const { toast } = useToast();
 
   const { uploadFiles, activeUploads } = useUnifiedUpload({
     onUploadComplete: (fileId: string, filename: string) => {
       console.log("FileUpload: onUploadComplete called for:", fileId, filename);
+      toast({
+        title: "Upload Successful",
+        description: `${filename} uploaded successfully`,
+      });
     },
     onUploadError: (fileId: string, error: string) => {
       console.log("FileUpload: onUploadError called for:", fileId, error);
+      toast({
+        title: "Upload Failed",
+        description: error,
+        variant: "destructive",
+      });
     },
   });
 

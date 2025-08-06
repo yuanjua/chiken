@@ -99,7 +99,7 @@ export function PdfParserConfig({
                   Local text extraction using Kreuzberg library with
                   support for complex layouts and tables. 
                   (OCR currently not implemented. Limited support for Latex formulas.
-                  For heavy documents, consider using the Remote Parser.)
+                  For math heavy documents, consider using the Remote Parser.)
                 </p>
               </div>
             )}

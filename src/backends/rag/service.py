@@ -32,16 +32,6 @@ class RAGService:
         return RAGService._active_knowledge_bases.copy()
 
     @staticmethod
-    async def is_knowledge_base_active(kb_id: str) -> bool:
-        """Check if a specific knowledge base is in the active list."""
-        try:
-            active_kbs = await RAGService.get_active_knowledge_bases()
-            return kb_id in active_kbs
-        except Exception as e:
-            logger.error(f"Error checking if knowledge base {kb_id} is active: {e}")
-            return False
-
-    @staticmethod
     async def get_active_knowledge_bases_validated() -> List[str]:
         """Get list of active knowledge base IDs, validated against current database state."""
         try:

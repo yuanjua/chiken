@@ -18,11 +18,17 @@ export function Toaster() {
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
+            <div className="text-center">
+              {title && description ? (
+                // If both title and description, show description as the main message
                 <ToastDescription>{description}</ToastDescription>
-              )}
+              ) : title ? (
+                // If only title, show it as the main message
+                <ToastTitle>{title}</ToastTitle>
+              ) : description ? (
+                // If only description, show it as the main message
+                <ToastDescription>{description}</ToastDescription>
+              ) : null}
             </div>
             {action}
             <ToastClose />

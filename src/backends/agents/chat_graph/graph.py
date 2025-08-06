@@ -91,7 +91,13 @@ class AgentGraphs:
         keys = getattr(state, "document_keys", None)
         if keys:
             logger.info(f"Performing RAG search on specific keys: {keys}")
-            results = await query_documents_with_context(query, keys, n_results=10)
+            # Import RAGService to query specific documents by keys
+            from ...rag.service import RAGService
+            results = await RAGService.query_documents(
+                query_text=query, 
+                keys=keys, 
+                k=10
+            )
         else:
             logger.info("Performing RAG search on all active knowledge bases.")
             results = await search_documents(query, n_results=16)

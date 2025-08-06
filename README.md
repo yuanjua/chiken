@@ -19,15 +19,18 @@
 *   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
 
 <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
-    <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 69%;">
+    <img src="assets/example-mention-doc.gif" alt="Mention Example" style="width: 44%;">
+    <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 49%;">
 </div>
 
 ## 🚀 Quick Start
 
-Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
+**Installation**: Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
 (Currently only MacOS and Windows builds are tested.)
 
-We recommend [installing Ollama](https://ollama.com/) for simple chat and embedding. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
+**Dependency**: PDF and plain text files are supported. Other file types (.docx, etc.) requires [pandoc](https://pandoc.org/) to be installed in your system.
+
+We recommend [Ollama](https://ollama.com/) for simple chat and embedding—it’s easy to install and use. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
 
 For more detailed instructions, check out the [Getting Started Guide](GETTING_STARTED.md).
 
