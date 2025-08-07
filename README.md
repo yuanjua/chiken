@@ -18,10 +18,14 @@
 
 *   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
 
+<<<<<<< HEAD
 <div style="display: flex; justify-content: center; align-items: center; gap: 1%;">
     <img src="assets/example-mention-doc.gif" alt="Mention Example" style="width: 44%;">
     <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 49%;">
 </div>
+=======
+<img src="assets/example-mention-doc.gif" height="320"/> <img src="assets/mcp-example.gif" height="320"/>
+>>>>>>> origin/main
 
 ## 🚀 Quick Start
 
