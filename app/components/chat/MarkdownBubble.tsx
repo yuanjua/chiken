@@ -118,15 +118,6 @@ const componentStyles = {
 const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
   const href = e.currentTarget.href;
-  if (href.startsWith("action://")) {
-    const action = href.replace("action://", "");
-    const doc = (globalThis as any)?.document as Document | undefined;
-    if (action === "search-show-in-chat" && doc) {
-      doc.dispatchEvent(new CustomEvent("search-show-in-chat"));
-    }
-    return;
-  }
-  // Simple check for external link
   if (href.startsWith("http://") || href.startsWith("https://")) {
     open(href);
   }
