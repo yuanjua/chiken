@@ -10,6 +10,8 @@ use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 use tauri_plugin_decorum::WebviewWindowExt;
+use tauri_plugin_fs;
+use tauri_plugin_dialog;
 
 // TODO: change pyinstaller to --onedir. refs: https://github.com/tauri-apps/tauri/discussions/3273
 
@@ -167,6 +169,8 @@ fn main() {
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_shell::init()) 
         .plugin(tauri_plugin_decorum::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             // Store the initial sidecar process in the app state
             app.manage(Arc::new(Mutex::new(None::<CommandChild>)));

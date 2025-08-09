@@ -1,6 +1,7 @@
 from typing import List, Dict, Any
 from ..database import get_database_manager
 from ..manager_singleton import ManagerSingleton
+from ..zotero.service import zotero_service
 from loguru import logger
 
 async def get_active_knowledge_bases() -> List[Dict[str, Any]]:
@@ -29,3 +30,15 @@ async def get_active_knowledge_bases() -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error getting active knowledge bases from DB: {e}")
         return []
+
+async def get_abstract_by_keys(keys: List[str]) -> Dict[str, str]:
+    """Return mapping of zotero item key -> abstractNote (may be empty string)."""
+    result: Dict[str, str] = {}
+    for key in keys or []:
+        try:
+            item = await zotero_service.get_item(key)
+            abs_note = item.get("data", {}).get("abstractNote", "") or ""
+            result[key] = abs_note
+        except Exception:
+            result[key] = ""
+    return result

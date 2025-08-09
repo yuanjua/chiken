@@ -46,6 +46,12 @@
       ]
     },
     "shell:default",
-    "http:default"
+    "http:default",
+    "fs:default",
+    "dialog:default",
+    "dialog:allow-save",
+    "fs:allow-create",
+    "fs:allow-write-text-file",
+    "fs:scope-download-recursive"
   ]
 }

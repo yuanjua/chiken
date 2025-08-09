@@ -185,10 +185,9 @@ class BackgroundStreamingManager {
 
       while (true) {
         if (this.currentController?.signal.aborted) break;
-        // Fix: Provide a dummy Uint8Array to reader.read() to match the expected signature
         const { done, value } = await reader.read(new Uint8Array());
         if (done) break;
-        parser.feed(decoder.decode(value));
+        parser.feed(decoder.decode(value, { stream: true }));
       }
     } catch (error: any) {
       if (error.name !== "AbortError") {

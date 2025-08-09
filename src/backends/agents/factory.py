@@ -31,6 +31,9 @@ async def create_agent(agent_type: str, user_config: UserConfig, checkpointer: O
             # Import chat agent here to avoid circular imports
             from .chat_graph.agent import ChatAgent
             return await ChatAgent.create(user_config, checkpointer)
+        elif agent_type_lower == "search_graph":
+            from .search_graph.agent import SearchGraphAgent
+            return await SearchGraphAgent.create(user_config, checkpointer)
         
         else:
             raise ValueError(f"Unknown agent type: {agent_type}")
@@ -62,4 +65,4 @@ class AgentFactory:
 
 def get_supported_agent_types() -> List[str]:
     """Get list of all supported agent types."""
-    return ["chat"] 
+    return ["chat", "search_graph"]

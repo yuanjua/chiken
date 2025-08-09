@@ -81,11 +81,10 @@ class SessionState(BaseModel):
         )
 
     def update_session(self, session: Session) -> None:
-        """Update a Session object with the current state."""
-        session.messages = self.messages
+        """Update non-history fields on the Session object.
+        Chat history is persisted exclusively by SessionManager to avoid duplication.
+        """
         session.title = self.title
-        session.message_count = self.message_count
         session.conversation_summary = self.conversation_summary
         session.key_topics = self.key_topics
         session.user_preferences = self.user_preferences
-        session.last_activity = self.last_activity

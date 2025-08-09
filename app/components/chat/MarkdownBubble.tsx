@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Children, Fragment, useState, useCallback } from "react";
+import React, { Children, Fragment, useState, useCallback, useEffect, useRef } from "react";
 // 1. Import the 'Components' type from the library
 import ReactMarkdown, { type Components } from "react-markdown";
 import { open } from "@tauri-apps/plugin-shell";
@@ -11,6 +11,9 @@ import rehypeRaw from "rehype-raw";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
+import { Button } from "@/components/ui/button";
+import { findAllTables, extractTableToData } from "@/lib/dom-table";
+import { SearchTableDialog } from "./SearchTableDialog";
 
 // --- CodeBlock Component ---
 const CodeBlock = React.memo(
@@ -115,6 +118,14 @@ const componentStyles = {
 const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();
   const href = e.currentTarget.href;
+  if (href.startsWith("action://")) {
+    const action = href.replace("action://", "");
+    const doc = (globalThis as any)?.document as Document | undefined;
+    if (action === "search-show-in-chat" && doc) {
+      doc.dispatchEvent(new CustomEvent("search-show-in-chat"));
+    }
+    return;
+  }
   // Simple check for external link
   if (href.startsWith("http://") || href.startsWith("https://")) {
     open(href);
@@ -191,9 +202,30 @@ interface MarkdownTextProps {
 
 const MarkdownText = React.memo(
   ({ content, className = "" }: MarkdownTextProps) => {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [hasTable, setHasTable] = useState(false);
+    const [showExport, setShowExport] = useState(false);
+    const [dialogData, setDialogData] = useState<{ headers: string[]; records: Array<Record<string, string>> } | null>(null);
+
+    useEffect(() => {
+      const el = containerRef.current;
+      setHasTable(!!el?.querySelector("table"));
+    }, [content]);
+
+    const openExport = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const tables = findAllTables(container);
+      if (tables.length === 0) return;
+      const { headers, records } = extractTableToData(tables[0]);
+      setDialogData({ headers, records });
+      setShowExport(true);
+    };
+
     return (
       // `space-y-3` provides tighter global spacing
       <div
+        ref={containerRef}
         className={`markdown-container w-full break-words space-y-3 overflow-hidden ${className}`}
       >
         <style>{`
@@ -225,6 +257,24 @@ const MarkdownText = React.memo(
         >
           {content}
         </ReactMarkdown>
+        {hasTable && (
+          <div className="pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-muted-foreground"
+              onClick={openExport}
+            >
+              Export
+            </Button>
+            <SearchTableDialog
+              open={showExport}
+              onOpenChange={setShowExport}
+              headers={dialogData?.headers || []}
+              records={dialogData?.records || []}
+            />
+          </div>
+        )}
       </div>
     );
   },

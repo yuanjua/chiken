@@ -9,6 +9,7 @@ from loguru import logger
 import os
 from datetime import datetime
 from typing import Dict, Any, Optional, AsyncGenerator, List
+from langchain_core.messages import HumanMessage, AIMessage
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
@@ -130,17 +131,26 @@ class SessionManager:
                     yield event
                     response_chunks_for_saving.append(chunk)
 
-            # Set session title from first message if needed
-            if session.message_count == 0 and len(response_chunks_for_saving) > 0:
-                 # Simulating 2 messages (user + AI) for title logic
-                session.message_count = 2
-                session.title = message[:50] + "..." if len(message) > 50 else message
-            
-            # Update last_activity timestamp when messages are processed
-            session.last_activity = datetime.now().isoformat()
-            
-            # After streaming, update the session state
-            await self.update_session(session)
+            # Persist history for agents
+            try:
+                was_empty = session.message_count == 0
+                # Append user and assistant messages to session history for all agents
+                session.add_message(HumanMessage(content=message))
+                full_response = "".join(response_chunks_for_saving)
+                if full_response:
+                    session.add_message(AIMessage(content=full_response))
+
+                # Set session title from first turn if it was empty
+                if was_empty and len(response_chunks_for_saving) > 0:
+                    session.title = message[:50] + "..." if len(message) > 50 else message
+
+                # Update last_activity timestamp when messages are processed
+                session.last_activity = datetime.now().isoformat()
+
+                # After streaming, update the session state
+                await self.update_session(session)
+            except Exception as persist_err:
+                logger.error(f"Failed to persist session {session_id} history: {persist_err}")
 
         except Exception as e:
             logger.error(f"Error streaming with {agent_type} agent for session {session_id}: {e}", exc_info=True)

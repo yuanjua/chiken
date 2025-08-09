@@ -236,3 +236,88 @@ export const validateBaseUrl = (url: string): { isValid: boolean; error?: string
     return { isValid: false, error: "Invalid URL format" };
   }
 };
+
+// ===== Utilities for KB query export as prompt =====
+
+export function formatKbResultsAsPrompt(
+  query: string,
+  results: Array<{ content: string; metadata?: Record<string, any> }>,
+): string {
+  const header = `You are given excerpts from a knowledge base relevant to the query. Use them to answer succinctly.\n\nQuery: ${query}\n\nExcerpts:`;
+  const body = results
+    .map((r, i) => {
+      const title = r.metadata?.title || r.metadata?.source || `Excerpt ${i + 1}`;
+      return `- ${title}: "${(r.content || "").replace(/\s+/g, " ").trim()}"`;
+    })
+    .join("\n");
+  return `${header}\n${body}`;
+}
+
+// ===== Backward-compat CSV helpers (compat shim) =====
+import { tauriService } from "@/lib/tauri-service";
+
+function browserDownloadCsv(filename: string, csvContent: string): void {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const doc = (globalThis as any)?.document as Document | undefined;
+  if (!doc || !doc.body) return;
+  const link = doc.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  doc.body.appendChild(link);
+  link.click();
+  doc.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// TODO: debug: not responsive for tauri
+export async function saveCSVWithTauri(
+  filename: string,
+  rows: Array<Record<string, any>>
+): Promise<boolean> {
+  try {
+    if (!rows || rows.length === 0) return false;
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(","),
+      ...rows.map((row) =>
+        headers
+          .map((h) => {
+            let cell = row[h] ?? "";
+            if (typeof cell === "string") cell = '"' + cell.replace(/"/g, '""') + '"';
+            return cell;
+          })
+          .join(","),
+      ),
+    ].join("\n");
+
+    if (tauriService.isTauriMode() && (tauriService as any).saveTextFile) {
+      const ok = await (tauriService as any).saveTextFile(csv, filename, "CSV", ["csv"]);
+      return !!ok;
+    }
+    browserDownloadCsv(filename, csv);
+    return true;
+  } catch (e) {
+    console.warn("saveCSVWithTauri fallback triggered", e);
+    try {
+      // Best-effort browser fallback
+      const headers = rows && rows.length > 0 ? Object.keys(rows[0]) : [];
+      const csv = [
+        headers.join(","),
+        ...(rows || []).map((row) =>
+          headers
+            .map((h) => {
+              let cell = row[h] ?? "";
+              if (typeof cell === "string") cell = '"' + cell.replace(/"/g, '""') + '"';
+              return cell;
+            })
+            .join(","),
+        ),
+      ].join("\n");
+      browserDownloadCsv(filename, csv);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}

@@ -139,7 +139,13 @@ class AgentGraphs:
 
     # --- Memory Workflow Nodes ---
     def save_conversation_exchange(self, state: SessionState) -> Dict[str, Any]:
-        return update_conversation_history(state)
+        """
+        Short-term memory only: do NOT mutate persistent history here.
+        SessionManager is responsible for persisting the user/assistant turn.
+        Keep state.messages unchanged; just keep counters in sync.
+        """
+        state.message_count = len(state.messages)
+        return {"messages": state.messages, "message_count": state.message_count}
 
     def check_memory_update_needed(self, state: SessionState) -> str:
         return should_update_long_term_memory(state)
