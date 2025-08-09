@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, FileText } from "lucide-react";
+import { Search, Loader2, FileText, Copy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { queryDocuments } from "@/lib/api-client";
+import { useKnowledgeBaseActions } from "@/hooks/useKnowledgeBaseActions";
 
 export function KnowledgeBaseQuerySection() {
   const [activeKnowledgeBaseIds] = useAtom(selectedKnowledgeBaseIdsAtom);
@@ -28,6 +29,7 @@ export function KnowledgeBaseQuerySection() {
   const [queryResults, setQueryResults] = useState<any[]>([]);
   const [selectedResult, setSelectedResult] = useState<any>(null);
   const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const { exportResultsAsPrompt } = useKnowledgeBaseActions();
 
   // Clear results when query input is emptied
   useEffect(() => {
@@ -40,6 +42,15 @@ export function KnowledgeBaseQuerySection() {
     setSelectedResult(result);
     setIsResultDialogOpen(true);
   };
+
+  const handleExportPrompt = () => {
+    const prompt = exportResultsAsPrompt(
+      searchQuery,
+      queryResults.map((r) => ({ content: r.content, metadata: r.metadata })),
+    );
+    // Optionally keep dialog with prompt display in future
+  };
+
 
   const getDisplayTitle = (result: any) => {
     if (result.metadata?.title) return result.metadata.title;
@@ -130,9 +141,17 @@ export function KnowledgeBaseQuerySection() {
       <div className="flex-1 flex flex-col min-h-0">
         {queryResults.length > 0 && (
           <div className="p-2 flex-shrink-0">
-            <h4 className="text-sm font-medium">
-              Search Results ({queryResults.length})
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-medium">
+                Search Results ({queryResults.length})
+              </h4>
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={handleExportPrompt}>
+                  <Copy className="h-3 w-3 mr-1" /> 
+                  <span className="text-xs">Export as Prompt</span>
+                </Button>
+              </div>
+            </div>
           </div>
         )}
         <div className="flex-1 overflow-y-auto p-4">

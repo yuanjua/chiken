@@ -11,6 +11,7 @@ import {
   deleteDocument as apiDeleteDocument,
 } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import { formatKbResultsAsPrompt } from "@/lib/utils";
 
 export function useKnowledgeBaseActions(
   setIsLoading?: (state: boolean) => void,
@@ -98,8 +99,31 @@ export function useKnowledgeBaseActions(
     }
   };
 
+  /** Export search results as a formatted prompt */
+  const exportResultsAsPrompt = (
+    query: string,
+    results: Array<{ content: string; metadata?: Record<string, any> }>,
+  ) => {
+    try {
+      const prompt = formatKbResultsAsPrompt(query, results);
+      // Copy to clipboard as default action
+      const nav = (typeof globalThis !== "undefined" && (globalThis as any).navigator) ? (globalThis as any).navigator : null;
+      if (nav && nav.clipboard && nav.clipboard.writeText) {
+        nav.clipboard.writeText(prompt).then(() => {
+          toast({ title: "Copied", description: "Prompt copied to clipboard." });
+        });
+      }
+      return prompt;
+    } catch (err) {
+      console.error("Failed to export results:", err);
+      toast({ title: "Export Failed", variant: "destructive" });
+      return "";
+    }
+  };
+
   return {
     deleteKnowledgeBase,
     deleteDocument,
+    exportResultsAsPrompt,
   } as const;
 }
