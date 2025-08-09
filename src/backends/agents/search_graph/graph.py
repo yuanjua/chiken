@@ -13,6 +13,7 @@ from .prompts import paper_comment_prompt, get_search_query_prompt, get_rank_pro
 from ...tools.read_tools import search_documents
 from ...tools.web import meta_search_tool
 from ...tools.utils import get_abstract_by_keys
+from ..utils import truncate_think_tag
 
 
 class SearchAgentGraph:
@@ -91,7 +92,7 @@ class SearchAgentGraph:
         else:
             prompt = get_search_query_prompt(user_q, history_context, context_hint)
             resp = await self.llm.ainvoke(prompt)
-            query = (resp.content or "").strip().strip('"')
+            query = truncate_think_tag((resp.content or "")).strip().strip('"')
         logger.info(f"SearchGraph.generate_query → {query}")
         return {"generated_query": query}
 
@@ -137,7 +138,7 @@ class SearchAgentGraph:
         ])
         prompt = get_rank_prompt(state.current_user_message_content, serialized)
         resp = await self.llm.ainvoke(prompt)
-        text = (resp.content or "").strip()
+        text = truncate_think_tag((resp.content or "")).strip()
         try:
             ranked = json.loads(text)
             if isinstance(ranked, list):

@@ -18,7 +18,7 @@ from .memory import (
 )
 from .tools import query_documents_with_context, search_documents, get_document_by_id
 from ...tools.utils import get_active_knowledge_bases
-from .utils import convert_to_basemessages, truncate_think_tag
+from ..utils import convert_to_basemessages, truncate_think_tag
 
 logger = loguru.logger
 

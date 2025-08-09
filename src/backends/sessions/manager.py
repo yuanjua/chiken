@@ -115,7 +115,7 @@ class SessionManager:
 
             # The agent's stream_response should return an async generator
             response_chunks_for_saving = []
-            async for chunk in agent.stream_response(message, session, context, request):
+            async for chunk in agent.stream(message, session, context, request):
                 if request and await request.is_disconnected():
                     logger.warning(f"Client disconnected during streaming for session {session_id}.")
                     break
