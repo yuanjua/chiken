@@ -7,9 +7,8 @@ from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from .state import SearchState
-from .tools import build_candidate_queries
 from ...tools.web import meta_search_tool
-from .tools.nlp import tokenize, compute_tfidf_scores
+from .nlp import tokenize, compute_tfidf_scores
 from .prompts import paper_comment_prompt, get_search_query_prompt, get_rank_prompt
 from ...tools.read_tools import search_documents
 from ...tools.web import meta_search_tool
