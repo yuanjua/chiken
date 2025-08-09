@@ -1,7 +1,7 @@
 from typing import Dict, Any, List
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 from langgraph.graph import StateGraph, END
-from .state import SessionState
+from .chat_graph.state import SessionState
 
 def convert_to_basemessages(messages: List[Any]) -> List[BaseMessage]:
     """Convert a list of message-like objects to LangChain BaseMessage instances."""

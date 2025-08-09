@@ -25,8 +25,6 @@ class SearchGraphAgent(BaseAgent):
         user_config=None,
         llm=None,
         *,
-        arxiv_max_results_per_query: int = 25,
-        arxiv_concurrency: int = 3,
         prefilter_top_n: int = 20,
         synthesis_top_k: int = 5,
         require_llm: bool = False,
@@ -45,8 +43,6 @@ class SearchGraphAgent(BaseAgent):
         # Initialize graph with configurable parameters
         self.graph = SearchAgentGraph(
             llm,
-            arxiv_max_results_per_query=arxiv_max_results_per_query,
-            arxiv_concurrency=arxiv_concurrency,
             prefilter_top_n=prefilter_top_n,
         )
 

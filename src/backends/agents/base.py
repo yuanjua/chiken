@@ -3,6 +3,7 @@ Base Agent Interface
 """
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator, Optional, Dict, Any
+import asyncio
 
 from ..sessions.session import Session
 
@@ -91,3 +92,60 @@ class BaseAgent(ABC):
         "Highlighting a key passage... 🖍️",
         "Finding the right chapter... 🔖",
     ]
+
+    async def is_disconnected(self, request: Optional[Any]) -> bool:
+        """Return True if the client has disconnected, else False."""
+        if request is None:
+            return False
+        try:
+            checker = getattr(request, "is_disconnected", None)
+            if checker is None:
+                return False
+            return bool(await checker())
+        except Exception:
+            return True
+
+    async def stream(
+        self,
+        message: str,
+        session: Session,
+        context: Optional[Dict[str, Any]] = None,
+        request: Optional[Any] = None,
+    ) -> AsyncGenerator[Any, None]:
+        """
+        Unified wrapper that runs `stream_response` and cooperatively cancels
+        when the client disconnects.
+        """
+        queue: asyncio.Queue = asyncio.Queue()
+        finished = asyncio.Event()
+
+        async def producer():
+            try:
+                async for event in self.stream_response(message, session, context, request):
+                    await queue.put(event)
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                await queue.put({"type": "error", "data": {"message": str(e)}})
+            finally:
+                finished.set()
+
+        producer_task = asyncio.create_task(producer())
+        try:
+            while not finished.is_set() or not queue.empty():
+                if await self.is_disconnected(request):
+                    producer_task.cancel()
+                    break
+                try:
+                    event = await asyncio.wait_for(queue.get(), timeout=0.1)
+                except asyncio.TimeoutError:
+                    continue
+                yield event
+                queue.task_done()
+        finally:
+            if not producer_task.done():
+                producer_task.cancel()
+                try:
+                    await producer_task
+                except Exception:
+                    pass
