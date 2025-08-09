@@ -392,7 +392,8 @@ async def meta_search_tool(
     per_source_limit: int = 8,
 ) -> List[Dict[str, Any]]:
     """
-    Meta-search academic papers across multiple sources.
+    Meta-search academic papers across multiple sources. 
+    Agents can make subsequent web search tool calls utilizing retrieved urls.
 
     Args:
       query: Natural-language or keyword query describing the topic/papers.
