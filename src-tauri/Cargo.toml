@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Tauri app that uses sidecars to load a Python server."
 authors = ["you"]
 license = ""
@@ -22,6 +22,8 @@ tauri = { version = "2", features = ["devtools"] }
 tauri-plugin-shell = "2"
 tauri-plugin-http = "2"
 tauri-plugin-decorum = "1.1.1"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

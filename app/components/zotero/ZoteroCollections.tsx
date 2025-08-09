@@ -141,6 +141,7 @@ export default function ZoteroCollections({
   const [collections, setCollections] = useAtom(zoteroCollectionsDataAtom);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorVisible, setErrorVisible] = useState(false);
   const [selectedKeys, setSelectedKeys] = useAtom(zoteroSelectedKeysAtom);
   const [hasLoaded, setHasLoaded] = useAtom(zoteroCollectionsLoadedAtom);
   const [isBackendReady] = useAtom(isBackendReadyAtom);
@@ -157,7 +158,13 @@ export default function ZoteroCollections({
           response.error ||
             "Failed to load collections. Is Zotero running and connected?",
         );
+        setErrorVisible(true);
         setCollections([]); // Ensure collections is an empty array
+        // Auto-hide the error after a delay and show the default empty state
+        setTimeout(() => {
+          setErrorVisible(false);
+          setError(null);
+        }, 3500);
       } else {
         const tree = buildCollectionTree(response.collections);
         setCollections(tree);
@@ -414,7 +421,7 @@ export default function ZoteroCollections({
   return (
     <div className="p-2">
       {loading && <p>Loading Zotero collections...</p>}
-      {error && (
+      {error && errorVisible && (
         <div
           className="p-4 my-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
           role="alert"

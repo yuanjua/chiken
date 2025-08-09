@@ -340,6 +340,12 @@ export function InputControls({ isLoading }: InputControlsProps) {
               Chat
             </div>
           </SelectItem>
+          <SelectItem value="search_graph">
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Search
+            </div>
+          </SelectItem>
         </SelectContent>
       </Select>
 
