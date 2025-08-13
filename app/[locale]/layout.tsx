@@ -12,7 +12,7 @@ export const metadata = {
 
 export const dynamic = "force-static";
 
-export const locales = ["en", "zh"] as const;
+const locales = ["en", "zh"] as const;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

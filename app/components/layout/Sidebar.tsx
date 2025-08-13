@@ -19,6 +19,7 @@ import { useTranslations } from "next-intl";
 function SelectedItemsCount() {
   const [selectedKeys] = useAtom(zoteroSelectedKeysAtom);
   const [collections] = useAtom(zoteroCollectionsDataAtom);
+  const t = useTranslations("Sidebar");
 
   if (selectedKeys.size === 0) {
     return null;
@@ -42,7 +43,7 @@ function SelectedItemsCount() {
 
   return (
     <div className="p-2 bg-muted/30 rounded text-xs text-muted-foreground">
-      {totalItems} item{totalItems !== 1 ? "s" : ""} selected
+      {t("itemsSelected", { count: totalItems })}
     </div>
   );
 }

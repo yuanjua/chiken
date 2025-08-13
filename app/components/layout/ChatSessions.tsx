@@ -70,6 +70,7 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
     handleKeyPress,
     formatTimestamp,
   }) => {
+    const t = useTranslations("Sessions");
     return (
       <div
         className={`
@@ -98,7 +99,7 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
               className="text-sm font-medium truncate pr-8"
               title={session.title}
             >
-              {session.title}
+              {session.title === "New Chat" ? t("newChatTitle") : session.title}
             </p>
           )}
           <p className="text-xs text-muted-foreground truncate pr-8">
@@ -123,13 +124,13 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
               className="bg-background dark:bg-gray-800"
             >
               <DropdownMenuItem onClick={(e) => onRename(session.id, e)}>
-                <Edit className="h-4 w-4 mr-2" /> Rename
+                <Edit className="h-4 w-4 mr-2" /> {t("rename")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => onDelete(session.id, e)}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

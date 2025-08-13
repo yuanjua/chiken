@@ -202,7 +202,9 @@
   "Zotero": {
     "loading": "Loading Zotero collections...",
     "errorPrefix": "Error:",
-    "empty": "No Zotero collections found."
+    "empty": "No Zotero collections found.",
+    "connectHint": "Make sure Zotero is connected",
+    "collectionsHeader": "Zotero Collections ({count})"
   },
   "EnvVars": {
     "title": "Environment Variables",
@@ -234,6 +236,10 @@
   }
   ,
   "MCP": {
+    "Section": {
+      "title": "Knowledge MCP Server",
+      "desc": "serving knowledge bases to preferred LLM clients."
+    },
     "Config": {
       "error": "Error",
       "loadFailed": "Failed to load MCP configuration",
@@ -279,13 +285,16 @@
     "newChat": "New Chat",
     "newChatTitle": "New Chat",
     "loading": "Loading sessions...",
-    "empty": "No chat sessions yet"
+    "empty": "No chat sessions yet",
+    "rename": "Rename",
+    "delete": "Delete"
   },
   "Sidebar": {
     "chatSessions": "Chat Sessions",
     "zoteroCollections": "Zotero Collections",
     "refreshCollections": "Refresh Collections",
-    "createKbFromCollections": "Create Knowledge Base from Collections"
+    "createKbFromCollections": "Create Knowledge Base from Collections",
+    "itemsSelected": "{count, plural, one {# item selected} other {# items selected}}"
   }
   
 }

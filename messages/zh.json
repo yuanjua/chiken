@@ -211,7 +211,9 @@
   "Zotero": {
     "loading": "正在加载 Zotero 文献库...",
     "errorPrefix": "错误：",
-    "empty": "未找到 Zotero 文献库。"
+    "empty": "未找到 Zotero 文献库。",
+    "connectHint": "请确认 Zotero 已连接",
+    "collectionsHeader": "Zotero 文献库（{count}）"
   },
   "EnvVars": {
     "title": "环境变量",
@@ -242,6 +244,10 @@
     "save": "保存"
   },
   "MCP": {
+    "Section": {
+      "title": "知识 MCP 服务",
+      "desc": "向偏好的 LLM 客户端提供知识库服务。"
+    },
     "Config": {
       "error": "错误",
       "loadFailed": "加载 MCP 配置失败",
@@ -282,6 +288,21 @@
       "recommended": "推荐",
       "learnMore": "了解更多 MCP 配置"
     }
+  },
+  "Sessions": {
+    "newChat": "新对话",
+    "newChatTitle": "新对话",
+    "loading": "正在加载会话...",
+    "empty": "暂无会话",
+    "rename": "重命名",
+    "delete": "删除"
+  },
+  "Sidebar": {
+    "chatSessions": "聊天会话",
+    "zoteroCollections": "Zotero 文献库",
+    "refreshCollections": "刷新文献库",
+    "createKbFromCollections": "从文献库创建知识库",
+    "itemsSelected": "已选 {count} 项"
   }
 }
 

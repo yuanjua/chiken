@@ -9,6 +9,7 @@ import {
   FileText,
 } from "lucide-react";
 import { getZoteroCollections } from "@/lib/api-client";
+import { useTranslations } from "next-intl";
 
 // Types for the tree structure
 interface TreeNode {
@@ -29,6 +30,8 @@ export default function ZoteroCollectionTree({
   onCollectionSelect,
   className = "",
 }: ZoteroCollectionTreeProps) {
+  const tZ = useTranslations("Zotero");
+  const tSidebar = useTranslations("Sidebar");
   const [collections, setCollections] = useState<TreeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +157,7 @@ export default function ZoteroCollectionTree({
       <div className={`p-4 ${className}`}>
         <div className="flex items-center space-x-2">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-sm text-gray-600">Loading collections...</span>
+          <span className="text-sm text-gray-600">{tZ("loading")}</span>
         </div>
       </div>
     );
@@ -164,13 +167,13 @@ export default function ZoteroCollectionTree({
     return (
       <div className={`p-4 ${className}`}>
         <div className="text-red-600 text-sm">
-          <p className="font-medium">Error loading collections:</p>
+          <p className="font-medium">{tZ("errorPrefix")} {tZ("loading")}</p>
           <p>{error}</p>
           <button
             onClick={loadCollections}
             className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
           >
-            Retry
+            {tSidebar("refreshCollections")}
           </button>
         </div>
       </div>
@@ -182,8 +185,8 @@ export default function ZoteroCollectionTree({
       <div className={`p-4 ${className}`}>
         <div className="text-gray-500 text-sm text-center">
           <Folder className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p>No collections found</p>
-          <p className="text-xs mt-1">Make sure Zotero is connected</p>
+          <p>{tZ("empty")}</p>
+          <p className="text-xs mt-1">{tZ("connectHint")}</p>
         </div>
       </div>
     );
@@ -193,7 +196,7 @@ export default function ZoteroCollectionTree({
     <div className={`${className}`}>
       <div className="border-b border-gray-200 dark:border-gray-700 pb-2 mb-2">
         <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 px-2">
-          Zotero Collections ({collections.length})
+          {tZ("collectionsHeader", { count: collections.length })}
         </h3>
       </div>
 
@@ -206,7 +209,7 @@ export default function ZoteroCollectionTree({
           onClick={loadCollections}
           className="text-xs text-blue-600 hover:text-blue-800 px-2"
         >
-          Refresh Collections
+          {tSidebar("refreshCollections")}
         </button>
       </div>
     </div>
