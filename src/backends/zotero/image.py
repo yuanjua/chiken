@@ -1,7 +1,8 @@
-from PIL import Image
-import io
-import numpy as np
 import base64
+import io
+
+from PIL import Image
+
 
 def resize_base64_image(base64_string, size=128):
     """
@@ -29,6 +30,7 @@ def resize_base64_image(base64_string, size=128):
     # Encode the resized image to Base64
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
+
 def resize_image_bytes_to_base64string(bytes: bytes, size=128):
     """
     Resize an image encoded as a bytes object to a Base64 string.
@@ -36,7 +38,7 @@ def resize_image_bytes_to_base64string(bytes: bytes, size=128):
     Args:
     bytes (bytes): Bytes object of the original image.
     size (int): Size of short side of the image.
-    
+
     """
     img = Image.open(io.BytesIO(bytes))
     scale = size / min(img.size)
@@ -44,6 +46,7 @@ def resize_image_bytes_to_base64string(bytes: bytes, size=128):
     buffered = io.BytesIO()
     resized_img.save(buffered, format=img.format)
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
 
 def resize_image_bytes_to_image(bytes: bytes, size=128):
     img = Image.open(io.BytesIO(bytes))

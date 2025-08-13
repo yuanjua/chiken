@@ -1,49 +1,54 @@
 from __future__ import annotations
-from typing import Dict, Any, List, Optional, Union
+
 from datetime import datetime
-from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage, AIMessage
-from pydantic import BaseModel, Field, field_validator, model_validator
-from ...user_config.models import UserConfig, create_chat_config
+from typing import Any
+
+from langchain_core.messages import BaseMessage
+from pydantic import BaseModel, Field, field_validator
+
 from ...sessions.session import Session
+from ...user_config.models import UserConfig, create_chat_config
+
 
 class SessionState(BaseModel):
     """Represents the state of a single conversation session for LangGraph."""
+
     session_id: str
-    
+
     # User configuration embedded in session state (supports both old and new config types)
-    user_config: Union[UserConfig] = Field(default_factory=create_chat_config)
+    user_config: UserConfig = Field(default_factory=create_chat_config)
 
     # Session data
     system_prompt_content: str = ""
     title: str = "New Chat"  # Session title
-    messages: List[BaseMessage] = Field(default_factory=list)
+    messages: list[BaseMessage] = Field(default_factory=list)
     message_count: int = 0
     conversation_summary: str = ""
-    key_topics: List[str] = Field(default_factory=list)
-    user_preferences: Dict[str, Any] = Field(default_factory=dict)
-    new_messages_to_save: List[BaseMessage] = Field(default_factory=list)
+    key_topics: list[str] = Field(default_factory=list)
+    user_preferences: dict[str, Any] = Field(default_factory=dict)
+    new_messages_to_save: list[BaseMessage] = Field(default_factory=list)
 
     # RAG
     run_rag: bool = False  # Flag to control RAG execution
     rag_query: str = ""
-    rag_results: List[Dict[str, Any]] = Field(default_factory=list)
+    rag_results: list[dict[str, Any]] = Field(default_factory=list)
     rag_context: str = ""  # Pre-formatted context for RAG
-    document_keys: List[str] = Field(default_factory=list)  # Document keys for RAG
+    document_keys: list[str] = Field(default_factory=list)  # Document keys for RAG
 
     # Configuration for this session's memory (derived from user_config)
     @property
     def max_history_length(self) -> int:
         return self.user_config.max_history_length
-    
+
     @property
     def memory_update_frequency(self) -> int:
         return self.user_config.memory_update_frequency
 
     # Transient fields for a single graph run
-    current_user_message_content: Optional[str] = None
-    current_ai_response_content: Optional[str] = None
-    error_message: Optional[str] = None
-    prepared_messages: Optional[List[BaseMessage]] = None  # Messages prepared for LLM
+    current_user_message_content: str | None = None
+    current_ai_response_content: str | None = None
+    error_message: str | None = None
+    prepared_messages: list[BaseMessage] | None = None  # Messages prepared for LLM
 
     # Timestamps (can be managed by the agent wrapper if preferred)
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())
@@ -53,19 +58,19 @@ class SessionState(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    @field_validator("messages", mode='before')
+    @field_validator("messages", mode="before")
     @classmethod
-    def serialize_messages(cls, v: Any) -> List[Dict[str, Any]]:
+    def serialize_messages(cls, v: Any) -> list[dict[str, Any]]:
         if not v:
             return []
         if isinstance(v[0], BaseMessage):
-             # If messages are already BaseMessage objects, serialize them to dicts
+            # If messages are already BaseMessage objects, serialize them to dicts
             return [msg.model_dump() for msg in v]
         # Otherwise, assume they are already dicts and return as is
         return v
 
     @classmethod
-    def from_session(cls, session: Session) -> "SessionState":
+    def from_session(cls, session: Session) -> SessionState:
         """Create a SessionState object from a Session object."""
         return cls(
             session_id=session.session_id,
@@ -77,7 +82,7 @@ class SessionState(BaseModel):
             message_count=session.message_count,
             conversation_summary=session.conversation_summary,
             key_topics=session.key_topics,
-            user_preferences=session.user_preferences
+            user_preferences=session.user_preferences,
         )
 
     def update_session(self, session: Session) -> None:

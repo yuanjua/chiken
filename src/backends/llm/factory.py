@@ -5,17 +5,19 @@ Simplified factory for creating ChatLiteLLM instances.
 """
 
 import os
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import Any, Optional
+
 from loguru import logger
-from .chatlitellm import LLM
 
 from ..user_config import UserConfig
+from .chatlitellm import LLM
+
 
 class LLMFactory:
     """Simplified factory for creating ChatLiteLLM instances."""
-    
+
     @classmethod
-    async def load_provider_credentials(cls, provider: str) -> Dict[str, Any]:
+    async def load_provider_credentials(cls, provider: str) -> dict[str, Any]:
         """Return only base_url for ollama (if set). API keys are read by LiteLLM from env."""
         try:
             if provider == "ollama":
@@ -25,16 +27,21 @@ class LLMFactory:
         except Exception as e:
             logger.error(f"⚠️ Failed to load credentials for {provider}: {e}")
             return {}
-    
+
     @classmethod
-    async def create_chat_model(cls, config: Dict[str, Any], load_from_db: bool = True, use_custom_endpoints: Optional[bool] = None) -> Optional["LLM"]:
+    async def create_chat_model(
+        cls,
+        config: dict[str, Any],
+        load_from_db: bool = True,
+        use_custom_endpoints: bool | None = None,
+    ) -> Optional["LLM"]:
         """
         Creates a ChatLiteLLM (LangChain wrapper) instance.
-        
+
         Args:
             config: Configuration dictionary for the provider.
             load_from_db: Whether to load credentials from database
-            
+
         Returns:
             ChatLiteLLM instance or None if creation fails
         """
@@ -72,7 +79,7 @@ class LLMFactory:
             return LLM(**llm_args)
         except Exception as e:
             raise e
-    
+
     @classmethod
     async def create_chat_model_from_user_config(cls, user_config) -> Optional["LLM"]:
         """Create ChatLiteLLM from UserConfig object."""
@@ -93,14 +100,15 @@ class LLMFactory:
         # Load from env only
         return await cls.create_chat_model(config, load_from_db=True, use_custom_endpoints=False)
 
+
 async def create_chatlitellm_from_user_config(user_config) -> Optional["LLM"]:
     """
     Factory function to create ChatLiteLLM from UserConfig.
     Delegates to LLMFactory to avoid duplication.
-    
+
     Args:
         user_config: UserConfig instance
-        
+
     Returns:
         ChatLiteLLM instance or None
     """

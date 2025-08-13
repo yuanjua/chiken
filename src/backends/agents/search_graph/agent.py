@@ -1,12 +1,14 @@
 import asyncio
 import re
-from typing import Any, AsyncGenerator, Dict, List, Optional, Tuple
+from collections.abc import AsyncGenerator
+from typing import Any
+
 from loguru import logger
 
-from ..base import BaseAgent
-from ...sessions.session import Session
-from .graph import SearchAgentGraph
 from ...llm import create_chatlitellm_from_user_config
+from ...sessions.session import Session
+from ..base import BaseAgent
+from .graph import SearchAgentGraph
 from .prompts import get_synthesis_prompt
 
 
@@ -60,12 +62,13 @@ class SearchGraphAgent(BaseAgent):
         self,
         message: str,
         session: Session,
-        context: Optional[Dict[str, Any]] = None,
-        request: Optional[Any] = None,
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+        context: dict[str, Any] | None = None,
+        request: Any | None = None,
+    ) -> AsyncGenerator[dict[str, Any], None]:
         # Stream step-by-step progress: generate query → arXiv search → LLM rank
         try:
             from .state import SearchState
+
             s = SearchState(
                 current_user_message_content=(message or ""),
                 mention_documents=(context or {}).get("mention_documents", []) if isinstance(context, dict) else [],
@@ -82,7 +85,7 @@ class SearchGraphAgent(BaseAgent):
             s.generated_query = upd.get("generated_query")
 
             # 2) Search
-            yield {"type": "progress", "data": {"message": "Searching arXiv..."}}
+            yield {"type": "progress", "data": {"message": "Searching web sources..."}}
             upd = await self.graph._arxiv_search(s)
             s.search_results = upd.get("search_results", [])
 
@@ -138,7 +141,7 @@ class SearchGraphAgent(BaseAgent):
                     context_snippets = []
                     for idx, it in enumerate(topk, start=1):
                         context_snippets.append(
-                            f"[{idx}] Title: {it.get('title','')}. Venue: {it.get('venue','')}. Authors: {', '.join(it.get('authors', [])[:3])}. Abstract: {(it.get('abstract','') or '')[:600]}"
+                            f"[{idx}] Title: {it.get('title', '')}. Venue: {it.get('venue', '')}. Authors: {', '.join(it.get('authors', [])[:3])}. Abstract: {(it.get('abstract', '') or '')[:600]}"
                         )
                     synth_prompt = get_synthesis_prompt(
                         s.current_user_message_content,
@@ -155,5 +158,3 @@ class SearchGraphAgent(BaseAgent):
         except Exception as e:
             logger.error(f"SearchGraphAgent: pipeline failed: {e}")
             yield {"type": "error", "data": {"message": "Search pipeline failed"}}
-
-

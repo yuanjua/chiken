@@ -1,12 +1,12 @@
-from typing import Dict, Any, List, Optional
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Any
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from ..user_config import UserConfig
 from ..manager_singleton import ManagerSingleton
+from ..user_config import UserConfig
 from .service import LLMService
-import os
 
 # Router setup
 router = APIRouter(prefix="/llm", tags=["LLM"])
@@ -14,38 +14,42 @@ router = APIRouter(prefix="/llm", tags=["LLM"])
 
 class LLMConfigResponse(BaseModel):
     """Response model for LLM configuration."""
+
     provider: str
     model_name: str
-    embed_model: Optional[str] = None
-    embed_provider: Optional[str] = None
+    embed_model: str | None = None
+    embed_provider: str | None = None
     temperature: float
     num_ctx: int
-    base_url: Optional[str] = None
-    api_key: Optional[str] = None
-    available_models: List[str] = Field(default_factory=list)
+    base_url: str | None = None
+    api_key: str | None = None
+    available_models: list[str] = Field(default_factory=list)
 
 
 class OllamaModelResponse(BaseModel):
     """Response model for Ollama model list."""
-    models: List[Dict[str, Any]]
+
+    models: list[dict[str, Any]]
     count: int
     timestamp: str
 
 
 class SetProviderBaseUrlRequest(BaseModel):
     """Request model for setting provider base URL."""
+
     provider: str
     base_url: str
 
 
 class SetModelParamsRequest(BaseModel):
     """Request model for setting model parameters."""
+
     model_name: str
-    temperature: Optional[float] = None
-    num_ctx: Optional[int] = None
-    embedding_model: Optional[str] = None
-    base_url: Optional[str] = None
-    api_key: Optional[str] = None
+    temperature: float | None = None
+    num_ctx: int | None = None
+    embedding_model: str | None = None
+    base_url: str | None = None
+    api_key: str | None = None
 
 
 class OllamaModelListRequest(BaseModel):
@@ -65,6 +69,7 @@ async def get_llm_config(config: UserConfig = Depends(ManagerSingleton.get_user_
     config_data = await LLMService.get_llm_config(config)
     return LLMConfigResponse(**config_data)
 
+
 @router.get("/models")
 async def get_model_list(config: UserConfig = Depends(ManagerSingleton.get_user_config)):
     """Get list of available models for the current provider."""
@@ -82,8 +87,8 @@ async def get_ollama_model_list():
 async def get_model_suggestions(
     provider: str,
     partial_model: str = "",
-    base_url: Optional[str] = None,
-    config: UserConfig = Depends(ManagerSingleton.get_user_config)
+    base_url: str | None = None,
+    config: UserConfig = Depends(ManagerSingleton.get_user_config),
 ):
     """Get model completion suggestions for a provider."""
     suggestions = await LLMService.get_model_completion_suggestions(provider, partial_model, base_url)
@@ -91,7 +96,7 @@ async def get_model_suggestions(
         "provider": provider,
         "suggestions": suggestions,
         "count": len(suggestions),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -103,7 +108,7 @@ async def get_litellm_models():
         "models": models,
         "count": len(models),
         "source": "litellm",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -116,14 +121,13 @@ async def get_litellm_provider_models(provider: str):
         "models": models,
         "count": len(models),
         "source": "litellm",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
 @router.post("/model/params")
 async def set_model_params(
-    request: SetModelParamsRequest,
-    config: UserConfig = Depends(ManagerSingleton.get_user_config)
+    request: SetModelParamsRequest, config: UserConfig = Depends(ManagerSingleton.get_user_config)
 ):
     """Set model parameters and update configuration."""
     updates = {}
@@ -139,5 +143,5 @@ async def set_model_params(
         updates["temperature"] = request.temperature
     if request.num_ctx is not None:
         updates["num_ctx"] = request.num_ctx
-    
+
     return await LLMService.set_model_params(config, updates)

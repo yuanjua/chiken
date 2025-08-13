@@ -1,22 +1,23 @@
+import argparse
+import asyncio
+import multiprocessing
 import os
 import sys
 import threading
-import asyncio
+from contextlib import asynccontextmanager
+
 import uvicorn
-import argparse
-import multiprocessing
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-from contextlib import asynccontextmanager
 from loguru import logger
-import sys
+
 from backends.api import router as api_router
 from backends.manager_singleton import ManagerSingleton
-from backends.mcp.api import mcp_manager # Import the manager instance
+from backends.mcp.api import mcp_manager  # Import the manager instance
 
 # Load environment variables from keychain at startup
 from backends.user_config.keychain_loader import load_env_from_keychain
+
 loaded_env = load_env_from_keychain()
 if loaded_env:
     logger.info(f"Loaded {len(loaded_env)} environment variables from keychain at startup")
@@ -36,8 +37,9 @@ logger.add(
     sys.stderr,
     level="INFO",
     format="{time:YYYY-MM-DD HH:mm:ss} {level} {name}: {message}",
-    colorize=True
+    colorize=True,
 )
+
 
 def stdin_monitor():
     """Monitor stdin for closure and trigger shutdown when parent process exits."""
@@ -50,10 +52,10 @@ def stdin_monitor():
             pass
     except (EOFError, OSError):
         pass
-    
+
     # When we reach here, stdin was closed (parent process exited)
     logger.warning("Stdin closed - parent process exited, initiating shutdown...")
-    
+
     # Use the stored main loop reference for thread-safe shutdown
     if main_loop and not main_loop.is_closed():
         try:
@@ -67,34 +69,36 @@ def stdin_monitor():
         logger.error("Main loop not available, forcing exit")
         os._exit(0)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Handles application startup, background tasks, and graceful shutdown.
     """
     global main_loop
-    
+
     # ====== STARTUP ======
     logger.info("Application Starting Up")
-    
+
     # Store the main event loop for thread-safe communication
     main_loop = asyncio.get_running_loop()
     logger.info("Main event loop stored for stdin monitoring")
-    
+
     await ManagerSingleton.initialize()
-    
+
     # Start the stdin monitor in a separate thread to watch for parent process exit
     stdin_thread = threading.Thread(target=stdin_monitor, daemon=True)
     stdin_thread.start()
     logger.info("Stdin monitor started.")
-    
+
     # This coroutine waits for the external shutdown signal from the stdin_monitor
     async def shutdown_watcher():
         try:
             await shutdown_event.wait()
             logger.warning("Shutdown event from stdin detected. Cleanup will proceed in the 'finally' block.")
         except asyncio.CancelledError:
-            pass # Expected during normal shutdown
+            pass  # Expected during normal shutdown
+
     # Create and start all long-running background tasks
     logger.info("Starting background services...")
 
@@ -102,15 +106,12 @@ async def lifespan(app: FastAPI):
     logger.info("Starting MCP server with existing configuration...")
     try:
         user_config = await ManagerSingleton.get_user_config()
-        config_params = {
-            "transport": user_config.mcp_transport,
-            "port": user_config.mcp_port
-        }
+        config_params = {"transport": user_config.mcp_transport, "port": user_config.mcp_port}
         await mcp_manager.start(config_params)
         logger.info("MCP server start command issued.")
     except Exception as e:
         logger.error(f"Failed to start MCP server: {e}")
-    
+
     watcher_task = asyncio.create_task(shutdown_watcher(), name="shutdown_watcher")
     background_tasks = [watcher_task]
     logger.info("Background services are running.")
@@ -140,11 +141,13 @@ async def lifespan(app: FastAPI):
         if shutdown_event.is_set():
             logger.warning("Forcing exit after parent process closed.")
             os._exit(0)
+
+
 app = FastAPI(
     title="Zotero Deep Researcher API",
     description="AI-powered research assistant with Zotero integration",
     version="0.2.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure loguru for debug level on specific modules
@@ -152,12 +155,8 @@ logger.add(
     sys.stderr,
     level="DEBUG",
     format="{time:YYYY-MM-DD HH:mm:ss} {level} {name}: {message}",
-    filter=lambda record: record["name"] in [
-        "backends.rag.service",
-        "backends.rag.db",
-        "uvicorn.access"
-    ],
-    colorize=True
+    filter=lambda record: record["name"] in ["backends.rag.service", "backends.rag.db", "uvicorn.access"],
+    colorize=True,
 )
 
 app.add_middleware(
@@ -169,12 +168,11 @@ app.add_middleware(
 )
 app.include_router(api_router, prefix="")
 
+
 @app.get("/")
 async def root():
-    return {
-        "message": "ChiKen API is running",
-        "version": "0.1.0"
-    }
+    return {"message": "ChiKen API is running", "version": "0.1.0"}
+
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
@@ -186,27 +184,30 @@ if __name__ == "__main__":
     parser.add_argument("--reload-dirs", type=str, default="src", help="Directories to watch for changes")
     parser.add_argument("--origins", type=str, default="http://localhost:3000", help="Origins to allow")
     parser.add_argument("--mcp", action="store_true", help="Start MCP server STDIO")
-    
+
     args = parser.parse_args()
-    reload=args.reload or os.getenv('DEBUG', 'false').lower() in ['true', '1', 'yes']
-    
+    reload = args.reload or os.getenv("DEBUG", "false").lower() in ["true", "1", "yes"]
+
     if args.mcp:
         from backends.mcp.kb_mcp_server import mcp
+
         mcp.run()
-        
+
     elif reload:
         import litellm
+
         litellm._turn_on_debug()
 
-        reload_dirs=args.reload_dirs.split(",") if args.reload_dirs else ["src"]
-        uvicorn.run('main:app',
-                    host=args.host,
-                    port=args.port,
-                    reload=True,
-                    reload_dirs=reload_dirs,
-                    log_level='debug',
-                    access_log=True,
-                    )
+        reload_dirs = args.reload_dirs.split(",") if args.reload_dirs else ["src"]
+        uvicorn.run(
+            "main:app",
+            host=args.host,
+            port=args.port,
+            reload=True,
+            reload_dirs=reload_dirs,
+            log_level="debug",
+            access_log=True,
+        )
 
     else:
         uvicorn.run(

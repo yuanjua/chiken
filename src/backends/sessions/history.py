@@ -5,12 +5,12 @@ A dedicated manager for handling chat history persistence.
 This decouples the session manager from the storage implementation.
 """
 
-from loguru import logger
-from typing import List
-from langchain_core.messages import BaseMessage
 from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain_core.messages import BaseMessage
+from loguru import logger
 
 # logger is imported from loguru
+
 
 class ChatHistoryManager:
     """Manages the persistence of chat histories."""
@@ -28,12 +28,10 @@ class ChatHistoryManager:
     def _get_history_for_session(self, session_id: str) -> SQLChatMessageHistory:
         """Get a SQLChatMessageHistory instance for a given session."""
         return SQLChatMessageHistory(
-            session_id=session_id,
-            connection=self.connection_string,
-            table_name="message_store"
+            session_id=session_id, connection=self.connection_string, table_name="message_store"
         )
 
-    def get_messages(self, session_id: str) -> List[BaseMessage]:
+    def get_messages(self, session_id: str) -> list[BaseMessage]:
         """
         Retrieve all messages for a given session.
 
@@ -77,7 +75,7 @@ class ChatHistoryManager:
         except Exception as e:
             logger.error(f"Failed to clear history for session {session_id}: {e}")
 
-    def save_messages(self, session_id: str, messages: List[BaseMessage]):
+    def save_messages(self, session_id: str, messages: list[BaseMessage]):
         """
         Save a list of messages, replacing the existing history for a session.
 

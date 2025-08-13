@@ -1,6 +1,4 @@
 from math import log
-from typing import Dict, List
-
 
 STOPWORDS = set(
     (
@@ -11,8 +9,8 @@ STOPWORDS = set(
 )
 
 
-def tokenize(text: str) -> List[str]:
-    tokens: List[str] = []
+def tokenize(text: str) -> list[str]:
+    tokens: list[str] = []
     word = []
     for ch in (text or "").lower():
         if ch.isalnum():
@@ -27,7 +25,7 @@ def tokenize(text: str) -> List[str]:
     return [t for t in tokens if t not in STOPWORDS and len(t) > 2]
 
 
-def compute_tfidf_scores(query_terms: List[str], documents: List[str]) -> List[float]:
+def compute_tfidf_scores(query_terms: list[str], documents: list[str]) -> list[float]:
     """
     Lightweight TF-IDF scoring: builds df over documents for query term set only.
     Returns a score for each document.
@@ -35,7 +33,7 @@ def compute_tfidf_scores(query_terms: List[str], documents: List[str]) -> List[f
     if not documents:
         return []
     # Use tokenized doc terms
-    doc_tokens: List[List[str]] = [tokenize(doc) for doc in documents]
+    doc_tokens: list[list[str]] = [tokenize(doc) for doc in documents]
     # restrict to query term set (tokenized)
     q_terms = [t for t in tokenize(" ".join(query_terms))]
     if not q_terms:
@@ -44,18 +42,18 @@ def compute_tfidf_scores(query_terms: List[str], documents: List[str]) -> List[f
 
     # document frequency for each q_term
     N = len(documents)
-    df: Dict[str, int] = {t: 0 for t in q_terms}
+    df: dict[str, int] = {t: 0 for t in q_terms}
     for tokens in doc_tokens:
         tset = set(tokens)
         for t in q_terms:
             if t in tset:
                 df[t] += 1
 
-    idf: Dict[str, float] = {t: log((N + 1) / (df[t] + 1)) + 1.0 for t in q_terms}
+    idf: dict[str, float] = {t: log((N + 1) / (df[t] + 1)) + 1.0 for t in q_terms}
 
-    scores: List[float] = []
+    scores: list[float] = []
     for tokens in doc_tokens:
-        tf: Dict[str, int] = {}
+        tf: dict[str, int] = {}
         for tok in tokens:
             if tok in idf:  # only count query terms
                 tf[tok] = tf.get(tok, 0) + 1
@@ -64,5 +62,3 @@ def compute_tfidf_scores(query_terms: List[str], documents: List[str]) -> List[f
             score += (tfc) * idf.get(t, 0.0)
         scores.append(score)
     return scores
-
-

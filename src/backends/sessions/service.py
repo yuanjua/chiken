@@ -5,56 +5,50 @@ This module contains the business logic for session management operations,
 separated from the API layer for better maintainability.
 """
 
+import asyncio
 import json
 from datetime import datetime
-from typing import Dict, Any, List, Optional, AsyncGenerator
+from typing import Any
+
 from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
-import asyncio
 
-from .manager import SessionManager
 from ..agents.agent_response import AgentResponse
+from .manager import SessionManager
 
 
 class SessionsService:
     """Service class for session management operations."""
-    
+
     @staticmethod
     async def update_session_state(
-        session_id: str, 
-        key: str, 
-        value: str, 
-        session_manager: SessionManager
-    ) -> Dict[str, Any]:
+        session_id: str, key: str, value: str, session_manager: SessionManager
+    ) -> dict[str, Any]:
         """Update the state of a specific session."""
         try:
             await session_manager.update_session_state(session_id, key, value)
             return {
                 "message": f"Session '{session_id}' {key} updated successfully",
-                "session_id": session_id,   
-                "timestamp": datetime.now().isoformat()
+                "session_id": session_id,
+                "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to update session {key}: {str(e)}")
-    
+
     @staticmethod
-    async def update_session_title(
-        session_id: str, 
-        title: str, 
-        session_manager: SessionManager
-    ) -> Dict[str, Any]:
+    async def update_session_title(session_id: str, title: str, session_manager: SessionManager) -> dict[str, Any]:
         """Update the title of a specific session."""
         return await SessionsService.update_session_state(session_id, "title", title, session_manager)
 
     @staticmethod
-    async def delete_session(session_id: str, session_manager: SessionManager) -> Dict[str, Any]:
+    async def delete_session(session_id: str, session_manager: SessionManager) -> dict[str, Any]:
         """Delete a specific session and its history."""
         try:
             await session_manager.clear_session_history(session_id)
             return {
                 "message": f"Session '{session_id}' deleted successfully",
                 "session_id": session_id,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
@@ -65,15 +59,12 @@ class SessionsService:
         message: str,
         agent_type: str,
         session_manager: SessionManager,
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None,
     ) -> AgentResponse:
         """Send a message to a specific session."""
         try:
             response = await session_manager.process_message(
-                message=message,
-                session_id=session_id,
-                agent_type=agent_type,
-                context=context
+                message=message, session_id=session_id, agent_type=agent_type, context=context
             )
             return response
         except Exception as e:
@@ -85,11 +76,11 @@ class SessionsService:
         message: str,
         agent_type: str,
         session_manager: SessionManager,
-        context: Optional[Dict[str, Any]] = None,
-        request: Optional[Request] = None
+        context: dict[str, Any] | None = None,
+        request: Request | None = None,
     ) -> StreamingResponse:
         """Stream a message response from a specific session using SSE."""
-        
+
         async def sse_generator():
             """Generator that yields SSE-formatted messages."""
             queue = asyncio.Queue()
@@ -103,7 +94,7 @@ class SessionsService:
                         session_id=session_id,
                         agent_type=agent_type,
                         context=context,
-                        request=request
+                        request=request,
                     ):
                         if request and await request.is_disconnected():
                             break
@@ -120,7 +111,7 @@ class SessionsService:
                 while not finished.is_set():
                     try:
                         await asyncio.wait_for(finished.wait(), timeout=15)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         if not finished.is_set():
                             await queue.put({"type": "keep-alive"})
 
@@ -130,7 +121,7 @@ class SessionsService:
             while not finished.is_set() or not queue.empty():
                 try:
                     event = await asyncio.wait_for(queue.get(), timeout=0.1)
-                    
+
                     if isinstance(event, dict):
                         if event.get("type") == "keep-alive":
                             yield ": keep-alive\n\n"
@@ -140,11 +131,11 @@ class SessionsService:
                         # For backward compatibility with agents yielding strings
                         payload = {"type": "content", "data": event}
                         yield f"data: {json.dumps(payload)}\n\n"
-                    
+
                     queue.task_done()
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
-            
+
             producer_task.cancel()
             keep_alive_task.cancel()
             try:
@@ -166,19 +157,19 @@ class SessionsService:
         return StreamingResponse(sse_generator(), media_type="text/event-stream", headers=headers)
 
     @staticmethod
-    async def get_session_info(session_id: str, session_manager: SessionManager) -> Dict[str, Any]:
+    async def get_session_info(session_id: str, session_manager: SessionManager) -> dict[str, Any]:
         """Get information about a specific session."""
         try:
             session_info = await session_manager.get_session_info_cached(session_id)
-            
+
             # Add agent_type field that's required by the response model if it's missing
             if "agent_type" not in session_info:
                 session_info["agent_type"] = (
-                    session_manager.user_config.agent_type.value 
-                    if hasattr(session_manager.user_config.agent_type, 'value') 
+                    session_manager.user_config.agent_type.value
+                    if hasattr(session_manager.user_config.agent_type, "value")
                     else str(session_manager.user_config.agent_type)
                 )
-            
+
             return session_info
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
@@ -186,32 +177,34 @@ class SessionsService:
             raise HTTPException(status_code=500, detail=f"Failed to get session info: {str(e)}")
 
     @staticmethod
-    async def list_sessions_by_date_desc(session_manager: SessionManager) -> Dict[str, Any]:
+    async def list_sessions_by_date_desc(session_manager: SessionManager) -> dict[str, Any]:
         """List all active sessions sorted by date (newest first)."""
         try:
             # Use the new method that loads sessions from persistent storage
             sessions = await session_manager.get_all_session_metadata()
-            
+
             # Sort by updated_at (newest first) - this is what the database actually returns
             sessions.sort(key=lambda x: x["updated_at"], reverse=True)
-            
+
             # Add agent_type field that's expected by the frontend
             for session in sessions:
                 if "agent_type" not in session:
                     session["agent_type"] = "chat"  # Default agent type
                 # Map updated_at to last_activity for frontend compatibility
                 session["last_activity"] = session["updated_at"]
-            
+
             return {
                 "sessions": sessions,
                 "total_count": len(sessions),
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to list sessions: {str(e)}") 
+            raise HTTPException(status_code=500, detail=f"Failed to list sessions: {str(e)}")
 
     @staticmethod
-    async def get_session_messages(session_id: str, before: Optional[float], limit: int, session_manager: SessionManager) -> Dict[str, Any]:
+    async def get_session_messages(
+        session_id: str, before: float | None, limit: int, session_manager: SessionManager
+    ) -> dict[str, Any]:
         """Retrieve a window of messages for the given session.
 
         Args:
@@ -261,4 +254,4 @@ class SessionsService:
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to get session messages: {str(e)}") 
+            raise HTTPException(status_code=500, detail=f"Failed to get session messages: {str(e)}")

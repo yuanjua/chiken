@@ -1,6 +1,3 @@
-from typing import List
-
-
 def paper_comment_prompt(user_question: str, title: str, abstract: str, source: str) -> str:
     return (
         "You are a meticulous research assistant. Given a user's question and a paper candidate, "
@@ -12,7 +9,6 @@ def paper_comment_prompt(user_question: str, title: str, abstract: str, source: 
         f"Abstract: {abstract[:1200]}\n\n"
         "Comment:"
     )
-
 
 
 def get_search_query_prompt(user_question: str, history_context: str, context_hint: str) -> str:
@@ -43,7 +39,7 @@ def get_rank_prompt(user_question: str, serialized_candidates: str) -> str:
     )
 
 
-def get_synthesis_prompt(user_question: str, context_snippets: List[str]) -> str:
+def get_synthesis_prompt(user_question: str, context_snippets: list[str]) -> str:
     """Prompt to synthesize a brief 3-5 sentence summary from top papers."""
     return (
         "You are an expert research scientist. Given the user's question and top candidate papers, "
@@ -53,4 +49,3 @@ def get_synthesis_prompt(user_question: str, context_snippets: List[str]) -> str
         f"Top Papers:\n" + "\n".join(context_snippets) + "\n\n"
         "Synthesis:"
     )
-
