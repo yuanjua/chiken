@@ -5,16 +5,12 @@ This module contains prompt templates for various LangGraph workflow operations.
 """
 
 import json
-from typing import List, Dict, Any
+from typing import Any
 
 
 def get_summarization_prompt(messages_text: str) -> str:
     """Generate a prompt for conversation summarization."""
-    return (
-        "Please summarize the following conversation concisely:\n\n"
-        f"{messages_text}\n\n"
-        "Summary:"
-    )
+    return f"Please summarize the following conversation concisely:\n\n{messages_text}\n\nSummary:"
 
 
 def get_memory_update_prompt(user_message: str, assistant_response: str) -> str:
@@ -30,7 +26,7 @@ def get_memory_update_prompt(user_message: str, assistant_response: str) -> str:
     )
 
 
-def get_context_aware_prompt(conversation_summary: str, key_topics: List[str], user_preferences: Dict[str, Any]) -> str:
+def get_context_aware_prompt(conversation_summary: str, key_topics: list[str], user_preferences: dict[str, Any]) -> str:
     """Generate a context-aware prompt that includes conversation memory."""
     context_parts = []
     if conversation_summary:
@@ -39,10 +35,11 @@ def get_context_aware_prompt(conversation_summary: str, key_topics: List[str], u
         context_parts.append(f"Key Topics: {', '.join(key_topics)}")
     if user_preferences:
         context_parts.append(f"User Preferences: {json.dumps(user_preferences)}")
-    
+
     if not context_parts:
         return ""
     return "Remember the following context:\n" + "\n".join(context_parts)
+
 
 def get_simple_query_prompt(user_question: str, history: str) -> str:
     """Generate a simple query prompt for user questions."""
@@ -52,9 +49,10 @@ def get_simple_query_prompt(user_question: str, history: str) -> str:
         "<Conversation_History>\n"
         f"{history}\n"
         "</Conversation_History>\n\n"
-        f"Latest User Message: \"{user_question}\"\n\n"
+        f'Latest User Message: "{user_question}"\n\n'
         "Search Query:"
     )
+
 
 def get_academic_search_query_prompt(user_question: str, history: str = "") -> str:
     """Generate a prompt for converting user questions into academic search queries."""
@@ -69,7 +67,7 @@ def get_academic_search_query_prompt(user_question: str, history: str = "") -> s
         "<Conversation_History>\n"
         f"{history}\n"
         "</Conversation_History>\n\n"
-        f"Latest User Message: \"{user_question}\"\n\n"
+        f'Latest User Message: "{user_question}"\n\n'
         "Based on the instructions and examples, generate the optimal academic search query.\n\n"
         "Academic Search Query:"
     )

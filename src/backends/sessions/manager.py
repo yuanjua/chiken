@@ -5,24 +5,24 @@ Simple session management that lets agents decide what they need.
 Removed research agent logic and heavy initialization.
 """
 
-from loguru import logger
-import os
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import Dict, Any, Optional, AsyncGenerator, List
-from langchain_core.messages import HumanMessage, AIMessage
+from typing import Any
 
+from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from loguru import logger
 
-from ..user_config import UserConfig
-from ..agents.factory import AgentFactory
 from ..agents.agent_response import AgentResponse
+from ..agents.base import BaseAgent
+from ..agents.factory import AgentFactory
+from ..user_config import UserConfig
 from .history import ChatHistoryManager
 from .session import Session
-from ..agents.base import BaseAgent
-
 
 # Set up logging
 # logger is imported from loguru
+
 
 class SessionManager:
     """Lightweight session manager - agents decide what they need."""
@@ -36,11 +36,11 @@ class SessionManager:
         self.history_manager = ChatHistoryManager(self.db_path)
         self.checkpointer_context = None
         self.checkpointer = None
-        self.sessions: Dict[str, Session] = {}  # Cache for active sessions
-        self.agents: Dict[str, Any] = {}  # Agent cache
-        logger.debug(f"SessionManager initialized")
+        self.sessions: dict[str, Session] = {}  # Cache for active sessions
+        self.agents: dict[str, Any] = {}  # Agent cache
+        logger.debug("SessionManager initialized")
 
-    async def get_or_create_agent(self, agent_type: str, agent_config: Optional[UserConfig] = None) -> BaseAgent:
+    async def get_or_create_agent(self, agent_type: str, agent_config: UserConfig | None = None) -> BaseAgent:
         """
         Get or create an agent instance.
         A unique agent is created for each model configuration.
@@ -53,25 +53,25 @@ class SessionManager:
 
         if agent_key not in self.agents:
             logger.debug(f"Creating agent for key: {agent_key}")
-            
+
             checkpointer = None
             if self._agent_needs_checkpointer(agent_type):
                 checkpointer = await self._get_checkpointer()
-            
+
             # Pass the specific config to the factory
             agent = await AgentFactory.create_agent(agent_type, agent_config, checkpointer)
-            
+
             if not isinstance(agent, BaseAgent):
                 raise TypeError(f"Agent of type {agent_type} does not implement the BaseAgent interface.")
 
             self.agents[agent_key] = agent
             logger.info(f"✅ Agent '{agent_key}' created.")
-        
+
         return self.agents[agent_key]
 
     def _agent_needs_checkpointer(self, agent_type: str) -> bool:
         """Check if an agent type needs persistent langgraph storage."""
-        stateful_agents = {'chat'}  # Only 'chat' agent uses langgraph checkpointer for now
+        stateful_agents = {"chat"}  # Only 'chat' agent uses langgraph checkpointer for now
         return agent_type.lower() in stateful_agents
 
     async def _get_checkpointer(self):
@@ -87,9 +87,9 @@ class SessionManager:
         message: str,
         session_id: str,
         agent_type: str = "chat",
-        context: Optional[Dict[str, Any]] = None,
-        request: Optional[Any] = None
-    ) -> AsyncGenerator[Dict[str, Any], None]:
+        context: dict[str, Any] | None = None,
+        request: Any | None = None,
+    ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Stream a response from the appropriate agent.
         This is the primary entry point for user messages.
@@ -97,7 +97,10 @@ class SessionManager:
         """
         try:
             if not AgentFactory.is_agent_type_supported(agent_type):
-                yield {"type": "error", "data": {"message": f"Unsupported agent type: {agent_type}"}}
+                yield {
+                    "type": "error",
+                    "data": {"message": f"Unsupported agent type: {agent_type}"},
+                }
                 return
 
             # --- Dynamic Configuration Handling ---
@@ -119,7 +122,7 @@ class SessionManager:
                 if request and await request.is_disconnected():
                     logger.warning(f"Client disconnected during streaming for session {session_id}.")
                     break
-                
+
                 # Ensure chunk is a dictionary before yielding
                 if isinstance(chunk, dict):
                     yield chunk
@@ -153,15 +156,21 @@ class SessionManager:
                 logger.error(f"Failed to persist session {session_id} history: {persist_err}")
 
         except Exception as e:
-            logger.error(f"Error streaming with {agent_type} agent for session {session_id}: {e}", exc_info=True)
-            yield {"type": "error", "data": {"message": f"An error occurred during streaming: {str(e)}"}}
+            logger.error(
+                f"Error streaming with {agent_type} agent for session {session_id}: {e}",
+                exc_info=True,
+            )
+            yield {
+                "type": "error",
+                "data": {"message": f"An error occurred during streaming: {str(e)}"},
+            }
 
     async def process_message(
         self,
         message: str,
         session_id: str,
         agent_type: str = "chat",
-        context: Optional[Dict[str, Any]] = None
+        context: dict[str, Any] | None = None,
     ) -> AgentResponse:
         """
         Process a message and return a complete response (non-streaming).
@@ -175,16 +184,16 @@ class SessionManager:
                     message=f"Unsupported agent type: {agent_type}",
                     timestamp=datetime.now().isoformat(),
                     status="error",
-                    metadata={"error": "unsupported_agent_type"}
+                    metadata={"error": "unsupported_agent_type"},
                 )
 
             # Use stream_response internally and collect chunks
             response_chunks = []
             async for chunk in self.stream_response(message, session_id, agent_type, context):
                 response_chunks.append(chunk)
-            
+
             full_response = "".join(response_chunks)
-            
+
             # Get session for metadata
             session = await self.get_session(session_id)
 
@@ -197,8 +206,8 @@ class SessionManager:
                 metadata={
                     "agent_type": agent_type,
                     "message_count": session.message_count,
-                    "session_title": session.title
-                }
+                    "session_title": session.title,
+                },
             )
 
         except Exception as e:
@@ -209,7 +218,7 @@ class SessionManager:
                 message=f"An error occurred while processing your message: {str(e)}",
                 timestamp=datetime.now().isoformat(),
                 status="error",
-                metadata={"error": str(e), "agent_type": agent_type}
+                metadata={"error": str(e), "agent_type": agent_type},
             )
 
     async def get_session(self, session_id: str) -> Session:
@@ -217,7 +226,7 @@ class SessionManager:
         if session_id not in self.sessions:
             db_manager = await self._get_db_manager()
             session_metadata = await db_manager.get_session_metadata(session_id)
-            
+
             if session_metadata:
                 # Load existing session from database
                 session = Session(
@@ -227,7 +236,7 @@ class SessionManager:
                     message_count=session_metadata["message_count"],
                     created_at=session_metadata["created_at"],
                     last_activity=session_metadata["updated_at"],
-                    messages=self.history_manager.get_messages(session_id)
+                    messages=self.history_manager.get_messages(session_id),
                 )
                 logger.debug(f"Loaded session {session_id} from database with {len(session.messages)} messages.")
             else:
@@ -235,28 +244,24 @@ class SessionManager:
                 session = Session(session_id=session_id, user_config=self.user_config)
                 await db_manager.save_session_metadata(session_id, session.title, 0)
                 logger.debug(f"Created new session: {session_id}")
-            
+
             self.sessions[session_id] = session
-        
+
         # Don't update last_activity here - only update it when messages are actually processed
         return self.sessions[session_id]
 
-    async def get_session_info_cached(self, session_id: str) -> Dict[str, Any]:
+    async def get_session_info_cached(self, session_id: str) -> dict[str, Any]:
         """Get session information with caching."""
         session = await self.get_session(session_id)
-        
+
         # Convert messages to OpenAI format
         openai_messages = []
         for msg in session.messages:
-            if hasattr(msg, 'type') and hasattr(msg, 'content'):
+            if hasattr(msg, "type") and hasattr(msg, "content"):
                 role = {"system": "system", "human": "user", "ai": "assistant"}.get(msg.type, "user")
-                timestamp = getattr(msg, 'timestamp', None)
-                openai_messages.append({
-                    "role": role,
-                    "content": str(msg.content),
-                    "timestamp": timestamp
-                })
-        
+                timestamp = getattr(msg, "timestamp", None)
+                openai_messages.append({"role": role, "content": str(msg.content), "timestamp": timestamp})
+
         return {
             "session_id": session_id,
             "messages": openai_messages,
@@ -264,7 +269,7 @@ class SessionManager:
                 "created_at": session.created_at,
                 "last_activity": session.last_activity,
                 "message_count": session.message_count,
-                "status": "active"
+                "status": "active",
             },
             "memory_context": {
                 "summary": session.conversation_summary,
@@ -273,22 +278,22 @@ class SessionManager:
             },
             "configuration": {
                 "agent_type": (
-                    self.user_config.agent_type.value 
-                    if hasattr(self.user_config.agent_type, 'value') 
+                    self.user_config.agent_type.value
+                    if hasattr(self.user_config.agent_type, "value")
                     else str(self.user_config.agent_type)
                 ),
                 "model_name": self.user_config.model_name,
                 "provider": self.user_config.provider,
                 "temperature": self.user_config.temperature,
                 "max_tokens": self.user_config.max_tokens,
-                "agent_name": getattr(self.user_config, 'agent_name', 'Assistant')
-            }
+                "agent_name": getattr(self.user_config, "agent_name", "Assistant"),
+            },
         }
 
     async def update_session_state(self, session_id: str, key: str, value: str):
         """Update a specific field in the session state."""
         session = await self.get_session(session_id)
-        
+
         if key == "title":
             session.title = value
         elif key == "conversation_summary":
@@ -296,35 +301,36 @@ class SessionManager:
         else:
             # For other keys, you might want to add them to user_preferences
             session.user_preferences[key] = value
-        
+
         await self.update_session(session)
 
     async def _get_db_manager(self):
         """Get database manager for accessing session data."""
         from ..database import get_database_manager
+
         return await get_database_manager()
 
     async def update_session(self, session: Session):
         """Update a session in the cache and save its state to the database."""
         self.sessions[session.session_id] = session
-        
+
         try:
             db_manager = await self._get_db_manager()
-            
+
             # Update metadata
             await db_manager.save_session_metadata(
                 session_id=session.session_id,
                 title=session.title,
-                message_count=len(session.messages)
+                message_count=len(session.messages),
             )
-            
+
             # Save message history
             self.history_manager.save_messages(session.session_id, session.messages)
-            
+
         except Exception as e:
             logger.error(f"Failed to update session {session.session_id} in database: {e}")
 
-    async def get_all_session_metadata(self) -> List[Dict[str, Any]]:
+    async def get_all_session_metadata(self) -> list[dict[str, Any]]:
         """Get metadata for all sessions from the database."""
         try:
             db_manager = await self._get_db_manager()
@@ -337,7 +343,7 @@ class SessionManager:
         """Clear a session's history from the cache and database."""
         if session_id in self.sessions:
             del self.sessions[session_id]
-        
+
         try:
             db_manager = await self._get_db_manager()
             await db_manager.delete_session_metadata(session_id)
@@ -345,7 +351,7 @@ class SessionManager:
             logger.debug(f"Cleared session {session_id} from database.")
         except Exception as e:
             logger.error(f"Failed to clear session {session_id} from database: {e}")
-        
+
         if self.checkpointer:
             try:
                 # This is for LangGraph workflows
@@ -368,10 +374,12 @@ class SessionManager:
 async def get_session_manager() -> "SessionManager":
     """Get the singleton session manager instance."""
     from ..manager_singleton import ManagerSingleton
+
     return await ManagerSingleton.get_session_manager()
+
 
 async def close_session_manager():
     """Close the singleton session manager instance."""
     from ..manager_singleton import ManagerSingleton
+
     await ManagerSingleton.close_all()
- 

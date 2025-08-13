@@ -5,12 +5,11 @@ This module provides API endpoints for Zotero integration,
 including collections, items, and PDF processing.
 """
 
-from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from .service import zotero_service
 
-# Router setup  
+# Router setup
 router = APIRouter(prefix="/zotero", tags=["Zotero"])
 
 
@@ -22,9 +21,10 @@ async def get_zotero_status():
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
+
 @router.get("/collections")
 async def get_zotero_collections(
-    limit: int = Query(None, description="Maximum number of collections to retrieve")
+    limit: int = Query(None, description="Maximum number of collections to retrieve"),
 ):
     """Get Zotero collections as JSON for tree display."""
     try:
@@ -32,18 +32,21 @@ async def get_zotero_collections(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get Zotero collections: {str(e)}")
 
+
 @router.get("/collections/{collection_id}/items")
 async def get_zotero_collection_items(collection_id: str):
     """Get items in a specific Zotero collection."""
     return await zotero_service.get_collection_items(collection_id)
 
+
 @router.post("/collections/items")
-async def get_zotero_collection_items_batch(collection_ids: List[str]):
+async def get_zotero_collection_items_batch(collection_ids: list[str]):
     """Get items in multiple Zotero collections."""
     return await zotero_service.get_collection_items(collection_ids)
+
 
 @router.get("/pdf/random")
 async def get_random_pdf_key():
     """Get a random PDF key for testing purposes."""
     key = await zotero_service.get_random_pdf_key()
-    return {'key': key}
+    return {"key": key}

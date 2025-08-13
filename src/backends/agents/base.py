@@ -1,11 +1,14 @@
 """
 Base Agent Interface
 """
-from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Optional, Dict, Any
+
 import asyncio
+from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from ..sessions.session import Session
+
 
 class BaseAgent(ABC):
     """
@@ -17,12 +20,12 @@ class BaseAgent(ABC):
         self,
         message: str,
         session: Session,
-        context: Optional[Dict[str, Any]] = None,
-        request: Optional[Any] = None
+        context: dict[str, Any] | None = None,
+        request: Any | None = None,
     ) -> AsyncGenerator[str, None]:
         """
         Process a message within a session and stream the response.
-        Use: 
+        Use:
         ```
         yield {"type": "progress", "data": {"message": "Processing context..."}}
         ```
@@ -33,7 +36,7 @@ class BaseAgent(ABC):
         context['mention_documents']
         >>> [{'title': 'Document Title', 'source': 'doc.pdf', 'key': 'sha256...', 'content': '...'}, ...]
         ```
-        
+
         Args:
             message: The user's message.
             session: The session object containing history and metadata.
@@ -58,7 +61,7 @@ class BaseAgent(ABC):
         """
         pass
 
-    # can generate more during streaming 🤗    
+    # can generate more during streaming 🤗
     COZY_MESSAGES = [
         "Brewing some thoughts... ☕️",
         "Sketching out an answer... ✍️",
@@ -93,7 +96,7 @@ class BaseAgent(ABC):
         "Finding the right chapter... 🔖",
     ]
 
-    async def is_disconnected(self, request: Optional[Any]) -> bool:
+    async def is_disconnected(self, request: Any | None) -> bool:
         """Return True if the client has disconnected, else False."""
         if request is None:
             return False
@@ -109,8 +112,8 @@ class BaseAgent(ABC):
         self,
         message: str,
         session: Session,
-        context: Optional[Dict[str, Any]] = None,
-        request: Optional[Any] = None,
+        context: dict[str, Any] | None = None,
+        request: Any | None = None,
     ) -> AsyncGenerator[Any, None]:
         """
         Unified wrapper that runs `stream_response` and cooperatively cancels
@@ -138,7 +141,7 @@ class BaseAgent(ABC):
                     break
                 try:
                     event = await asyncio.wait_for(queue.get(), timeout=0.1)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
                 yield event
                 queue.task_done()

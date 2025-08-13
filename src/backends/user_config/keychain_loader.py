@@ -3,14 +3,16 @@ Simple keychain loader for environment variables.
 Stores all env vars as a single JSON dict in keychain.
 """
 
-import os
-import json
-from loguru import logger
-import keyring
 import getpass
+import json
+import os
+
+import keyring
+from loguru import logger
 
 SERVICE_NAME = "chiken"
 ENV_VARS_KEY = getpass.getuser()
+
 
 def load_env_from_keychain(user_config=None) -> dict[str, str]:
     """
@@ -84,4 +86,3 @@ def save_env_dict_to_keychain(env_dict: dict[str, str]) -> bool:
     except Exception as e:
         logger.error(f"Failed to save env vars to keychain: {e}")
         return False
-
