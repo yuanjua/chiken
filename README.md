@@ -4,7 +4,7 @@
 
 ## ✨ Features
 
-*   **AI-Powered Research Assistant**: Integrate your Zotero library with local (Ollama) or remote LLMs. Perform advanced search, review, and summarization of your research documents right on your desktop.
+*   **AI-Powered Research Assistant**: Integrate your Zotero library with LLMs through vector stores and MCP. Perform search, review, and summarization of your research documents right on your desktop.
 
 *   **Flexible LLM Backend**: Powered by LiteLLM, ChiKen supports a wide range of LLMs, including local instances via Ollama and major cloud providers.
 
@@ -14,20 +14,22 @@
 
 *   **Simple RAG Search**: Use Retrieval-Augmented Generation to query across your knowledge bases. Find the most relevant document chunks to feed LLMs based on semantic meaning, not just keywords.
 
-*   **One-Click MCP Server for Your Knowledge**: An internal server that lets any preferred LLM access your deep knowledge bases. No code for you to set up! 
+*   **One-Click MCP Server for Your Knowledge**: An internal server that lets any preferred LLM access your deep knowledge bases. No code set up! 
 
 *   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
 
-<img src="assets/example-mention-doc.gif" height="320"/> <img src="assets/mcp-example.gif" height="320"/>
 
 ## 🚀 Quick Start
 
 **Installation**: Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
-(Currently only MacOS and Windows builds are tested.)
 
 **Dependency**: PDF and plain text files are supported. Other file types (.docx, etc.) requires [pandoc](https://pandoc.org/) to be installed in your system.
 
 We recommend [Ollama](https://ollama.com/) for simple chat and embedding—it’s easy to install and use. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
+
+
+https://github.com/user-attachments/assets/7a20f4da-a76b-4e3b-8e10-43b7927d67b4
+
 
 For more detailed instructions, check out the [Getting Started Guide](GETTING_STARTED.md).
 
@@ -38,6 +40,8 @@ For more detailed instructions, check out the [Getting Started Guide](GETTING_ST
 *   **More Agents**: Introducing dedicated agents for in-depth Search, Review, and Summarization tasks.
 *   **Smarter Document Parsing**: Integrate both lightweight and powerful options designed for literature processing.
 *   **Multi-Modal Understanding**: Take advantage of the latest advancements in local multi-modal LLMs to handle images, PDFs, and more.
+*   **More MCP Tools**: Expanding the capabilities of the internal server with new tools for deeper knowledge interaction.
+*   **New Architecture**: Planning a shift to PyTauri from the current FastAPI sidecar in Tauri to eliminate IPC and improve performance.
 *   ⁉️**More Tests**: Adding comprehensive tests.
 
 ## 🤝 Contributing
