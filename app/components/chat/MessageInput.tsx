@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Send, Square } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface MessageInputProps {
   input: string;
@@ -20,6 +21,7 @@ export function MessageInput({
   selectedMentionDocsCount,
 }: MessageInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const t = useTranslations("Common");
 
   const autoResize = () => {
     const textarea = textareaRef.current;
@@ -67,8 +69,8 @@ export function MessageInput({
         onKeyDown={handleKeyDown}
         placeholder={
           selectedMentionDocsCount > 0
-            ? `Ask about ${selectedMentionDocsCount} document${selectedMentionDocsCount > 1 ? "s" : ""}...`
-            : "Type your message..."
+            ? t("askAboutDocs", { count: selectedMentionDocsCount })
+            : t("typeMessagePlaceholder")
         }
         className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         rows={1}

@@ -1,0 +1,7 @@
+{
+  "loading": "正在加载 Zotero 文献库...",
+  "errorPrefix": "错误：",
+  "empty": "未找到 Zotero 文献库。",
+  "connectHint": "请确认 Zotero 已连接",
+  "collectionsHeader": "Zotero 文献库（{count}）"
+}

@@ -1,0 +1,11 @@
+{
+  "title": "PDF Parser Configuration",
+  "parserType": "Parser Type",
+  "selectParserType": "Select PDF parser type",
+  "kreuzbergLocal": "Kreuzberg (Local)",
+  "parserServer": "Parser Server",
+  "serverUrl": "Parser Server URL",
+  "parserServerDesc": "Uses AI models for better layout-aware extraction, formulas, tables, and OCR. Requires a running server and more time.",
+  "kreuzberg": "Kreuzberg Parser",
+  "kreuzbergDesc": "Local extraction via Kreuzberg with complex layout and table support. No OCR; limited LaTeX support."
+}

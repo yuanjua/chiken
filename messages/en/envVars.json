@@ -1,0 +1,18 @@
+{
+  "title": "Environment Variables",
+  "recommended": "Recommended variables",
+  "noRecommendations": "No recommendations available.",
+  "descOpenAI": "OpenAI API key",
+  "descAnthropic": "Anthropic API key",
+  "descAzure": "Azure OpenAI API key",
+  "descReplicate": "Replicate API key",
+  "descCohere": "Cohere API key",
+  "descOpenRouter": "OpenRouter API key",
+  "descTogether": "Together AI API key",
+  "descHF": "Hugging Face token",
+  "descOpenAIBase": "Custom OpenAI-compatible base URL",
+  "descOllamaBase": "Ollama server base URL (default http://localhost:11434)",
+  "descAcademicMailto": "Enter email to increase rate limit to academic search",
+  "descS2": "Semantic Scholar API key to increase rate limit",
+  "descNCBI": "NCBI/PubMed API key to increase rate limit"
+}

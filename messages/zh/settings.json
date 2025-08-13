@@ -1,0 +1,16 @@
+{
+  "title": "设置",
+  "description": "配置你的聊天体验和模型参数。",
+  "providerAndModel": "服务商与模型",
+  "modelParameters": "模型参数",
+  "temperature": "温度",
+  "temperatureHelp": "控制随机性。数值越低越确定，越高越有创造性。",
+  "contextSize": "上下文大小",
+  "contextSizeHelp": "一次对话可记忆的最大 token 数。更高允许更长的对话，但占用更多内存。",
+  "appearance": "外观",
+  "theme": "主题",
+  "themeLight": "浅色",
+  "themeDark": "深色",
+  "themeSystem": "系统",
+  "reportBug": "反馈问题"
+}

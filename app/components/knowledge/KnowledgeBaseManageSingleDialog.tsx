@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "../rag/FileUpload";
 import { Database, Loader2 } from "lucide-react";
 import { useAtom } from "jotai";
+import { useTranslations } from "next-intl";
 
 interface KnowledgeBaseManageSingleDialogProps {
   kb: KnowledgeBase | null;
@@ -28,6 +29,7 @@ export function KnowledgeBaseManageSingleDialog({
   open,
   onOpenChange,
 }: KnowledgeBaseManageSingleDialogProps) {
+  const t = useTranslations("KB.Manage");
   const [processingDocumentIds] = useAtom(processingDocumentIdsAtom);
   const [ragDocuments] = useAtom(ragDocumentsAtom);
 
@@ -42,10 +44,10 @@ export function KnowledgeBaseManageSingleDialog({
       <DialogContent className="max-w-lg p-0 overflow-hidden">
         <DialogHeader className="p-6 border-b">
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <Database className="h-5 w-5" /> Manage &ldquo;{kb.name}&rdquo;
+            <Database className="h-5 w-5" /> {t("title", { name: kb.name })}
           </DialogTitle>
           <DialogDescription>
-            Basic information and file upload for this knowledge base.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -53,11 +55,11 @@ export function KnowledgeBaseManageSingleDialog({
           {/* Info section */}
           <div className="space-y-2 text-sm">
             <div>
-              <span className="font-medium">Description:</span>{" "}
+              <span className="font-medium">{t("descriptionLabel")}</span>{" "}
               {kb.description || "—"}
             </div>
             <div>
-              <span className="font-medium">Documents:</span>{" "}
+              <span className="font-medium">{t("documentsLabel")}</span>{" "}
               <Badge variant="secondary" className="flex items-center gap-1">
                 {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
                 {kb.documentCount}
@@ -65,7 +67,7 @@ export function KnowledgeBaseManageSingleDialog({
             </div>
             {kb.createdAt && (
               <div>
-                <span className="font-medium">Created:</span>{" "}
+                <span className="font-medium">{t("createdLabel")}</span>{" "}
                 {new Date(kb.createdAt).toLocaleDateString()}
               </div>
             )}
@@ -73,7 +75,7 @@ export function KnowledgeBaseManageSingleDialog({
 
           {/* Upload section */}
           <div>
-            <h4 className="text-sm font-medium mb-2">Add files</h4>
+            <h4 className="text-sm font-medium mb-2">{t("addFiles")}</h4>
             <FileUpload
               targetKnowledgeBase={{ id: kb.id, name: kb.name }}
               hideSupportMessage

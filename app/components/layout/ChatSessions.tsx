@@ -26,6 +26,7 @@ import {
 import { Plus, MoreHorizontal, Trash2, Edit } from "lucide-react";
 import { deleteSession, updateSessionTitle } from "@/lib/api-client";
 import { generateUUID } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Format timestamp for display - shows formatted time instead of relative time
 function formatTimestamp(date: Date): string {
@@ -69,6 +70,7 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
     handleKeyPress,
     formatTimestamp,
   }) => {
+    const t = useTranslations("Sessions");
     return (
       <div
         className={`
@@ -97,7 +99,7 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
               className="text-sm font-medium truncate pr-8"
               title={session.title}
             >
-              {session.title}
+              {session.title === "New Chat" ? t("newChatTitle") : session.title}
             </p>
           )}
           <p className="text-xs text-muted-foreground truncate pr-8">
@@ -122,13 +124,13 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
               className="bg-background dark:bg-gray-800"
             >
               <DropdownMenuItem onClick={(e) => onRename(session.id, e)}>
-                <Edit className="h-4 w-4 mr-2" /> Rename
+                <Edit className="h-4 w-4 mr-2" /> {t("rename")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => onDelete(session.id, e)}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -151,6 +153,7 @@ const SessionRow: React.FC<SessionRowProps> = React.memo(
 SessionRow.displayName = "SessionRow";
 
 export default function ChatSessions() {
+  const t = useTranslations("Sessions");
   // const router = useRouter(); // Remove router
   const [activeSessionId, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const [chatSessionsMap, setChatSessionsMap] = useAtom(chatSessionsMapAtom);
@@ -193,7 +196,7 @@ export default function ChatSessions() {
     // Create a new session in the frontend
     const newSession = {
       id: newSessionId,
-      title: "New Chat",
+      title: t("newChatTitle"),
       preview: "",
       createdAt: new Date(),
       updatedAt: new Date(), // This will be updated when first message is sent
@@ -309,7 +312,7 @@ export default function ChatSessions() {
           className="w-full justify-start gap-2"
         >
           <Plus className="h-4 w-4" />
-          New Chat
+          {t("newChat")}
         </Button>
       </div>
 
@@ -320,13 +323,13 @@ export default function ChatSessions() {
             <div className="text-center py-8 px-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-sm text-muted-foreground">
-                Loading sessions...
+                {t("loading")}
               </p>
             </div>
           ) : sessionsList.length === 0 ? (
             <div className="text-center py-8 px-4">
               <p className="text-sm text-muted-foreground">
-                No chat sessions yet
+                {t("empty")}
               </p>
             </div>
           ) : (

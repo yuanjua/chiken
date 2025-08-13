@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { getAvailableProviders } from "@/lib/api-client";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 
 interface ProviderSelectProps {
   value: string;
@@ -12,6 +13,7 @@ interface ProviderSelectProps {
 }
 
 export function ProviderSelect({ value, onChange, label, disabled, placeholder }: ProviderSelectProps) {
+  const t = useTranslations("Config");
   const [input, setInput] = useState(value || "");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -54,7 +56,7 @@ export function ProviderSelect({ value, onChange, label, disabled, placeholder }
         }}
         onBlur={() => setTimeout(() => setShowDropdown(false), 100)}
         disabled={disabled}
-        placeholder={placeholder || "Type provider name..."}
+        placeholder={placeholder || t("typeProviderPlaceholder")}
         autoComplete="off"
         className="font-mono text-sm"
       />
@@ -79,7 +81,7 @@ export function ProviderSelect({ value, onChange, label, disabled, placeholder }
           ))}
         </ul>
       )}
-      {loading && <div className="text-xs text-muted-foreground mt-1">Loading providers...</div>}
+      {loading && <div className="text-xs text-muted-foreground mt-1">{t("loadingProviders")}</div>}
     </div>
   );
 }

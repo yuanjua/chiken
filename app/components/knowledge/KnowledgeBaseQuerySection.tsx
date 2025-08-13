@@ -19,8 +19,10 @@ import {
 } from "@/components/ui/dialog";
 import { queryDocuments } from "@/lib/api-client";
 import { useKnowledgeBaseActions } from "@/hooks/useKnowledgeBaseActions";
+import { useTranslations } from "next-intl";
 
 export function KnowledgeBaseQuerySection() {
+  const t = useTranslations("KB.Query");
   const [activeKnowledgeBaseIds] = useAtom(selectedKnowledgeBaseIdsAtom);
   const [knowledgeBases] = useAtom(knowledgeBasesAtom);
 
@@ -93,7 +95,7 @@ export function KnowledgeBaseQuerySection() {
     <div className="flex-1 flex flex-col min-h-0">
       <div className="p-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium">Query Knowledge Bases</h3>
+          <h3 className="text-sm font-medium">{t("title")}</h3>
           <Badge variant="outline">
             {activeKnowledgeBaseIds.reduce(
               (total, kbId) =>
@@ -101,14 +103,13 @@ export function KnowledgeBaseQuerySection() {
                 (knowledgeBases.find((kb) => kb.id === kbId)?.documentCount ||
                   0),
               0,
-            )}{" "}
-            total docs
+            )}{" "}{t("totalDocs")}
           </Badge>
         </div>
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Semantic search..."
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -130,7 +131,7 @@ export function KnowledgeBaseQuerySection() {
             {isQuerying ? (
               <Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              "Query"
+              t("query")
             )}
           </Button>
         </div>
@@ -142,13 +143,11 @@ export function KnowledgeBaseQuerySection() {
         {queryResults.length > 0 && (
           <div className="p-2 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">
-                Search Results ({queryResults.length})
-              </h4>
+              <h4 className="text-sm font-medium">{t("results", { count: queryResults.length })}</h4>
               <div className="flex gap-2">
                 <Button size="sm" variant="ghost" onClick={handleExportPrompt}>
                   <Copy className="h-3 w-3 mr-1" /> 
-                  <span className="text-xs">Export as Prompt</span>
+                  <span className="text-xs">{t("exportAsPrompt")}</span>
                 </Button>
               </div>
             </div>
@@ -172,11 +171,11 @@ export function KnowledgeBaseQuerySection() {
                         <Badge variant="outline" className="text-xs">
                           {knowledgeBases.find(
                             (kb) => kb.id === result.knowledge_base_name,
-                          )?.name || "Unknown KB"}
+                          )?.name || t("unknownKb")}
                         </Badge>
                         {result.metadata?.page_number && (
                           <span className="text-xs text-muted-foreground">
-                            Page {result.metadata.page_number}
+                            {t("page")} {result.metadata.page_number}
                           </span>
                         )}
                       </div>
@@ -189,7 +188,7 @@ export function KnowledgeBaseQuerySection() {
                     {truncateText(result.content)}
                   </p>
                   <div className="mt-2 text-xs text-blue-600">
-                    View →
+                    {t("view")}
                   </div>
                 </div>
               ))}
@@ -204,23 +203,23 @@ export function KnowledgeBaseQuerySection() {
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              {selectedResult ? getDisplayTitle(selectedResult) : "Document"}
+              {selectedResult ? getDisplayTitle(selectedResult) : t("document")}
             </DialogTitle>
             <DialogDescription asChild>
               {selectedResult && (
                 <div className="text-sm text-muted-foreground">
                   <span className="flex items-center gap-4">
                     <span>
-                      Knowledge Base:{" "}
+                      {t("knowledgeBase")}:{" "}
                       {knowledgeBases.find(
                         (kb) => kb.id === selectedResult.knowledge_base_name,
-                      )?.name || "Unknown"}
+                      )?.name || t("unknown")}
                     </span>
                     {selectedResult.metadata?.page_number && (
-                      <span>Page: {selectedResult.metadata.page_number}</span>
+                      <span>{t("page")} : {selectedResult.metadata.page_number}</span>
                     )}
                     <span>
-                      Relevance Score:{" "}
+                      {t("relevanceScore")} {" "}
                       {((1 - selectedResult.distance)).toFixed(3)}
                     </span>
                   </span>
@@ -258,7 +257,7 @@ export function KnowledgeBaseQuerySection() {
               variant="outline"
               onClick={() => setIsResultDialogOpen(false)}
             >
-              Close
+              {t("close")}
             </Button>
           </div>
         </DialogContent>

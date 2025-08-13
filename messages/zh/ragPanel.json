@@ -1,0 +1,10 @@
+{
+  "documentsCount": "{count} 个文档",
+  "documentsHeader": "文档（{count}）",
+  "selectAll": "全选",
+  "clear": "清除",
+  "selectedForContext": "已选择 {count} 个用于上下文",
+  "emptyKb": "该知识库中暂无文档",
+  "uploadToStart": "上传文档以开始",
+  "chunksCount": "{count} 个分块"
+}

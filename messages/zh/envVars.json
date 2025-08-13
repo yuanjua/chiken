@@ -1,0 +1,18 @@
+{
+  "title": "环境变量",
+  "recommended": "推荐变量",
+  "noRecommendations": "暂无推荐项。",
+  "descOpenAI": "OpenAI API 密钥",
+  "descAnthropic": "Anthropic API 密钥",
+  "descAzure": "Azure OpenAI API 密钥",
+  "descReplicate": "Replicate API 密钥",
+  "descCohere": "Cohere API 密钥",
+  "descOpenRouter": "OpenRouter API 密钥",
+  "descTogether": "Together AI 密钥",
+  "descHF": "Hugging Face 令牌",
+  "descOpenAIBase": "自定义 OpenAI 兼容 Base URL",
+  "descOllamaBase": "Ollama 服务地址（默认 http://localhost:11434）",
+  "descAcademicMailto": "填写邮箱以提升学术检索的速率限制",
+  "descS2": "Semantic Scholar API 密钥以提升速率限制",
+  "descNCBI": "NCBI/PubMed API 密钥以提升速率限制"
+}

@@ -9,6 +9,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { ProviderTestResult, SaveConfigResult } from "@/lib/chat-service";
+import { useTranslations } from "next-intl";
 
 interface TestAndSaveConfigButtonsProps {
   isTestingProvider: boolean;
@@ -29,20 +30,21 @@ export function TestAndSaveConfigButtons({
   saveResult,
   error,
 }: TestAndSaveConfigButtonsProps) {
+  const t = useTranslations("ConfigButtons");
   const status = React.useMemo(() => {
-    if (isSavingConfig) return { status: "loading", text: "Saving..." };
-    if (isTestingProvider) return { status: "loading", text: "Testing..." };
-    if (saveResult?.success) return { status: "success", text: "Saved!" };
-    if (providerTestResult?.success)
-      return { status: "success", text: "Test Successful!" };
-    if (error) return { status: "error", text: "Error" };
-    return { status: "idle", text: "Idle" };
+    if (isSavingConfig) return { status: "loading", text: t("saving") };
+    if (isTestingProvider) return { status: "loading", text: t("testing") };
+    if (saveResult?.success) return { status: "success", text: t("saved") };
+    if (providerTestResult?.success) return { status: "success", text: t("testSuccessful") };
+    if (error) return { status: "error", text: t("error") };
+    return { status: "idle", text: t("idle") };
   }, [
     isSavingConfig,
     isTestingProvider,
     saveResult,
     providerTestResult,
     error,
+    t,
   ]);
 
   const StatusIcon = ({ className }: { className?: string }) => {
@@ -71,7 +73,7 @@ export function TestAndSaveConfigButtons({
         ) : (
           <TestTube className="w-4 h-4 mr-2" />
         )}
-        Test
+        {t("test")}
       </Button>
 
       <Button
@@ -87,7 +89,7 @@ export function TestAndSaveConfigButtons({
         ) : (
           <Settings className="w-4 h-4 mr-2" />
         )}
-        Save
+        {t("save")}
       </Button>
 
       <Badge

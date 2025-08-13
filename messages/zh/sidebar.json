@@ -1,0 +1,7 @@
+{
+  "chatSessions": "聊天会话",
+  "zoteroCollections": "Zotero 文献库",
+  "refreshCollections": "刷新文献库",
+  "createKbFromCollections": "从文献库创建知识库",
+  "itemsSelected": "已选 {count} 项"
+}

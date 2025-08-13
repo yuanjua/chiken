@@ -16,6 +16,7 @@ import * as secretStore from "@/lib/secret-store";
 import { useToast } from "@/hooks/use-toast";
 import { useProviderConnection } from "@/hooks/useProviderConnection";
 import { isValidBaseUrl } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface ProviderSpecificConfigProps {
   selectedModel: ModelConfig;
@@ -37,6 +38,7 @@ export function ProviderSpecificConfig({
   updateSelectedModelConfig,
   refreshTrigger,
 }: ProviderSpecificConfigProps) {
+  const t = useTranslations("Config");
   const [models, setModels] = useState<any[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
 
@@ -230,7 +232,7 @@ export function ProviderSpecificConfig({
       {/* Chat Model Input with Suggestions */}
       <div className="relative">
         <div className="flex items-center justify-between">
-          <Label>Chat Model</Label>
+          <Label>{t("chatModel")}</Label>
           <Button
             onClick={fetchModels}
             disabled={loadingModels}
@@ -242,7 +244,7 @@ export function ProviderSpecificConfig({
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}
-            Refresh
+            {t("refresh")}
           </Button>
         </div>
         <ModelSuggestDropdown
@@ -259,11 +261,11 @@ export function ProviderSpecificConfig({
             setModelInput(fullModelName);
           }}
           fetchSuggestions={fetchSuggestions}
-          placeholder={`Type to search ${currentProvider} models`}
+          placeholder={t("searchModelsPlaceholder", { provider: currentProvider })}
           renderCostInfo={renderCostInfo}
         />
         <div className="mt-1 text-xs text-muted-foreground">
-          Showing models from: {currentProvider} provider. Type to filter available models.
+          {t("showingModelsFrom", { provider: currentProvider })}
         </div>
       </div>
     </>

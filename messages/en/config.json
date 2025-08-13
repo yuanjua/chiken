@@ -1,0 +1,8 @@
+{
+  "chatModel": "Chat Model",
+  "refresh": "Refresh",
+  "searchModelsPlaceholder": "Type to search {provider} models",
+  "showingModelsFrom": "Showing models from: {provider} provider. Type to filter available models.",
+  "typeProviderPlaceholder": "Type provider name...",
+  "loadingProviders": "Loading providers..."
+}

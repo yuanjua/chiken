@@ -14,6 +14,7 @@ import "katex/dist/katex.min.css";
 import { Button } from "@/components/ui/button";
 import { findAllTables, extractTableToData } from "@/lib/dom-table";
 import { SearchTableDialog } from "./SearchTableDialog";
+import { useTranslations } from "next-intl";
 
 // --- CodeBlock Component ---
 const CodeBlock = React.memo(
@@ -193,6 +194,7 @@ interface MarkdownTextProps {
 
 const MarkdownText = React.memo(
   ({ content, className = "" }: MarkdownTextProps) => {
+    const t = (globalThis as any).nextIntl?.t || (()=>undefined);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [hasTable, setHasTable] = useState(false);
     const [showExport, setShowExport] = useState(false);
@@ -256,7 +258,7 @@ const MarkdownText = React.memo(
               className="h-6 px-2 text-xs text-muted-foreground"
               onClick={openExport}
             >
-              Export
+              {t("Common.export") || "Export"}
             </Button>
             <SearchTableDialog
               open={showExport}

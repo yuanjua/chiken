@@ -1,0 +1,46 @@
+{
+  "Section": {
+    "title": "Knowledge MCP Server",
+    "desc": "serving knowledge bases to preferred LLM clients."
+  },
+  "Config": {
+    "error": "Error",
+    "loadFailed": "Failed to load MCP configuration",
+    "success": "Success",
+    "savedAndRestarted": "MCP configuration saved and server restarted successfully",
+    "saveRestartFailed": "Failed to save configuration and restart MCP server",
+    "copied": "Copied",
+    "copiedDesc": "MCP configuration copied to clipboard",
+    "copyFailed": "Failed to copy configuration to clipboard",
+    "title": "MCP Server Configuration",
+    "loading": "Loading configuration...",
+    "serverPrefix": "MCP Server:",
+    "running": "Running",
+    "stopped": "Stopped",
+    "serverSettings": "Server Settings",
+    "transportType": "Transport Type",
+    "selectTransport": "Select transport type",
+    "port": "Port",
+    "clientConfig": "MCP Client Configuration",
+    "copyJson": "Copy JSON",
+    "clientConfigDesc": "Copy this configuration for use in MCP clients (Claude Desktop, VSCode, etc.)",
+    "processing": "Processing...",
+    "saveAndRestart": "Save and Restart MCP Server"
+  },
+  "JSON": {
+    "title": "MCP Configuration",
+    "loading": "Loading...",
+    "generating": "Generating configuration examples...",
+    "error": "Error",
+    "failed": "Failed to generate MCP configuration examples.",
+    "desc": "Copy and use these configurations to connect MCP clients to the knowledge base server.",
+    "sidecarBinary": "Tauri Sidecar Binary:",
+    "copied": "Copied!",
+    "copy": "Copy",
+    "stdioDesc": "Direct process communication via stdin/stdout. Recommended for desktop applications.",
+    "httpDesc": "HTTP-based communication. Good for web-based clients and debugging.",
+    "sseDesc": "SSE-based communication. Suitable for real-time web applications.",
+    "recommended": "Recommended",
+    "learnMore": "Learn more about MCP configuration"
+  }
+}

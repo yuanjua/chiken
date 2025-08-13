@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useAtom } from "jotai";
 import {
   zoteroSelectedKeysAtom,
@@ -54,6 +55,7 @@ export function KnowledgeBaseCreationDialog({
   children,
   mode = "collections",
 }: KnowledgeBaseCreationDialogProps) {
+  const t = useTranslations("KB.Create");
   const [selectedKeys, setSelectedKeys] = useAtom(zoteroSelectedKeysAtom);
   const [collections] = useAtom(zoteroCollectionsDataAtom);
   const [knowledgeBases, setKnowledgeBases] = useAtom(knowledgeBasesAtom);
@@ -161,20 +163,12 @@ useEffect(() => {
 
   const handleCreate = async () => {
     if (!knowledgeBaseName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a knowledge base name",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: t("enterName"), variant: "destructive" });
       return;
     }
 
     if (mode === "collections" && selectedCollections.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one collection",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: t("selectOneCollection"), variant: "destructive" });
       return;
     }
 
@@ -234,10 +228,7 @@ useEffect(() => {
         // For standalone mode, just close the dialog
         setIsOpen(false);
         setIsCreating(false);
-        toast({
-          title: "Success",
-          description: `Knowledge base "${knowledgeBaseName.trim()}" created successfully`,
-        });
+        toast({ title: t("success"), description: t("created", { name: knowledgeBaseName.trim() }) });
         return;
       }
 
@@ -273,11 +264,7 @@ useEffect(() => {
       const uniqueKeys = Array.from(allZoteroKeys);
 
       if (uniqueKeys.length === 0) {
-        toast({
-          title: "Warning",
-          description: "No items found in the selected Zotero collections.",
-          variant: "default",
-        });
+        toast({ title: t("warning"), description: t("noItems"), variant: "default" });
         return;
       }
 
@@ -294,14 +281,7 @@ useEffect(() => {
       }, 2000);
     } catch (err: any) {
       console.error("Error creating knowledge base:", err);
-      toast({
-        title: "Error",
-        description:
-          err instanceof Error
-            ? err.message
-            : "Failed to create knowledge base",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: err instanceof Error ? err.message : t("createFailed"), variant: "destructive" });
       setIsCreating(false); // Only disable on error during setup
     }
   };
@@ -319,16 +299,16 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
 
   const getDialogTitle = () => {
     if (mode === "standalone") {
-      return "Create New Knowledge Base";
+      return t("titleNew");
     }
-    return "Create Knowledge Base from Collections";
+    return t("titleFromCollections");
   };
 
   const getDialogDescription = () => {
     if (mode === "standalone") {
-      return "Create a new empty knowledge base. You can add documents to it later.";
+      return t("descNew");
     }
-    return "Add documents from selected Zotero collections to a new knowledge base.";
+    return t("descFromCollections");
   };
 
   return (
@@ -350,10 +330,10 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
           <div className="space-y-4 pb-6 px-1">
           {/* Knowledge Base Name Input */}
           <div className="space-y-2">
-            <Label htmlFor="kb-name">Knowledge Base Name</Label>
+            <Label htmlFor="kb-name">{t("nameLabel")}</Label>
             <Input
               id="kb-name"
-              placeholder="Enter knowledge base name..."
+              placeholder={t("namePlaceholder")}
               value={knowledgeBaseName}
               onChange={(e) => {
                 setKnowledgeBaseName(e.target.value);
@@ -365,7 +345,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
 
           {/* Advanced Settings Toggle */}
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium">Processing Parameters</Label>
+            <Label className="text-sm font-medium">{t("processingParams")}</Label>
             <Button
               variant="ghost"
               size="sm"
@@ -373,7 +353,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
               className="h-8 px-2 text-xs"
             >
               <Settings className="h-3 w-3 mr-1" />
-              {showAdvanced ? "Hide" : "Show"} Advanced
+              {showAdvanced ? t("hideAdvanced") : t("showAdvanced")}
             </Button>
           </div>
 
@@ -382,9 +362,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
             <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="chunk-size" className="text-sm">
-                    Chunk Size
-                  </Label>
+                  <Label htmlFor="chunk-size" className="text-sm">{t("chunkSize")}</Label>
                   <Input
                     id="chunk-size"
                     type="number"
@@ -397,15 +375,11 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
                     }}
                     disabled={isCreating}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Size of text chunks (100-4000 characters)
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("chunkSizeHelp")}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="chunk-overlap" className="text-sm">
-                    Chunk Overlap
-                  </Label>
+                  <Label htmlFor="chunk-overlap" className="text-sm">{t("chunkOverlap")}</Label>
                   <Input
                     id="chunk-overlap"
                     type="number"
@@ -418,21 +392,15 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
                     }}
                     disabled={isCreating}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Overlap between chunks (0-1000 characters)
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t("chunkOverlapHelp")}</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between py-2">
                 <div className="space-y-1">
-                  <Label className="text-sm">
-                    Enable Reference Filtering
-                  </Label> 
-                  <span className="text-xs text-gray-500">(In development, stay tuned for updates.)</span>
-                  <p className="text-xs text-muted-foreground">
-                    Filter out references and citations from document content using Naive Bayes, trained on narrow domain of data. Plan to broaden and refine its dataset.
-                  </p>
+                  <Label className="text-sm">{t("enableRefFiltering")}</Label> 
+                  <span className="text-xs text-gray-500">{t("refFilteringBadge")}</span>
+                  <p className="text-xs text-muted-foreground">{t("refFilteringHelp")}</p>
                 </div>
                 <Switch
                   id="reference-filtering"
@@ -455,20 +423,15 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
               {/* Selected Collections Summary */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">
-                    Selected Collections
-                  </Label>
+                  <Label className="text-sm font-medium">{t("selectedCollections")}</Label>
                   <Badge variant="secondary">
-                    {selectedCollections.length} collection
-                    {selectedCollections.length !== 1 ? "s" : ""}, {totalItems}{" "}
-                    item{totalItems !== 1 ? "s" : ""}
+                    {t("collectionsCount", { count: selectedCollections.length })}, {totalItems} {t("items", { count: totalItems })}
                   </Badge>
                 </div>
 
                 {selectedCollections.length === 0 ? (
                   <div className="text-sm text-muted-foreground text-center py-4">
-                    No collections selected. Please select collections from the
-                    sidebar.
+                    {t("noCollectionsSelected")}
                   </div>
                 ) : (
                   <ScrollArea className="h-32 border rounded-md p-3">
@@ -481,10 +444,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
                           <span className="truncate flex-1">
                             {collection.name}
                           </span>
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {collection.numItems} item
-                            {collection.numItems !== 1 ? "s" : ""}
-                          </Badge>
+                          <Badge variant="outline" className="ml-2 text-xs">{t("items", { count: collection.numItems })}</Badge>
                         </div>
                       ))}
                     </div>
@@ -504,7 +464,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
             onClick={() => setIsOpen(false)}
             disabled={isCreating}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             size="sm"
@@ -519,12 +479,12 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
             {isCreating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                {t("creating")}
               </>
             ) : (
               <>
                 <Database className="h-4 w-4 mr-2" />
-                Create Knowledge Base
+                {t("createKb")}
               </>
             )}
           </Button>

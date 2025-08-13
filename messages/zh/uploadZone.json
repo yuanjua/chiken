@@ -1,0 +1,16 @@
+{
+  "successTitle": "上传成功",
+  "successDesc": "{filename} 上传成功",
+  "failedTitle": "上传失败",
+  "tooLarge": "文件 {name} 过大。最大限制为 {size}MB。",
+  "tooLargeTitle": "文件过大",
+  "unsupportedTypeDesc": "不支持的文件类型：{type}。",
+  "unsupportedTypeTitle": "不支持的文件类型",
+  "dropHere": "将文件拖拽到此处...",
+  "dragOrClick": "拖拽文件到此处或点击选择",
+  "supports": "支持图片、PDF、文本（每个最多 10MB）",
+  "processingMentions": "正在处理用于提及的文档...",
+  "uploadingToDefaultKb": "正在上传到 uploaded-documents 知识库...",
+  "uploadComplete": "上传完成 - 可用于提及",
+  "duplicate": "重复文件 - 使用已有版本"
+}

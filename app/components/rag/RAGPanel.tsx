@@ -26,8 +26,10 @@ import {
   Loader2,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function RAGPanel() {
+  const t = useTranslations("RAGPanel");
   const [activeKnowledgeBase] = useAtom(activeKnowledgeBaseAtom);
   const [activeKbDocuments] = useAtom(activeKnowledgeBaseDocumentsAtom);
   const [selectedRAGDocs, setSelectedRAGDocs] = useAtom(
@@ -83,7 +85,7 @@ export function RAGPanel() {
           <div>
             <h2 className="font-semibold">{activeKnowledgeBase.name}</h2>
             <p className="text-xs text-muted-foreground">
-              {activeKbDocuments.length} documents
+              {t("documentsCount", { count: activeKbDocuments.length })}
             </p>
           </div>
         </div>
@@ -106,7 +108,7 @@ export function RAGPanel() {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">
-              Documents ({readyDocuments.length})
+              {t("documentsHeader", { count: readyDocuments.length })}
             </span>
             <div className="flex gap-2">
               <Button
@@ -115,7 +117,7 @@ export function RAGPanel() {
                 onClick={handleSelectAll}
                 disabled={selectedCount === readyDocuments.length}
               >
-                Select All
+                {t("selectAll")}
               </Button>
               <Button
                 variant="outline"
@@ -123,14 +125,14 @@ export function RAGPanel() {
                 onClick={handleClearSelection}
                 disabled={selectedCount === 0}
               >
-                Clear
+                {t("clear")}
               </Button>
             </div>
           </div>
 
           {selectedCount > 0 && (
             <Badge variant="secondary" className="w-full justify-center">
-              {selectedCount} selected for context
+              {t("selectedForContext", { count: selectedCount })}
             </Badge>
           )}
         </div>
@@ -143,10 +145,10 @@ export function RAGPanel() {
             <div className="text-center py-8">
               <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-sm text-muted-foreground">
-                No documents in this knowledge base
+                {t("emptyKb")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Upload documents to get started
+                {t("uploadToStart")}
               </p>
             </div>
           ) : (
@@ -176,7 +178,7 @@ export function RAGPanel() {
                       {document.chunks && (
                         <>
                           <span>•</span>
-                          <span>{document.chunks} chunks</span>
+                          <span>{t("chunksCount", { count: document.chunks })}</span>
                         </>
                       )}
                     </div>

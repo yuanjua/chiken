@@ -13,6 +13,7 @@ import { useUnifiedUpload } from "@/hooks/useUnifiedUpload";
 import { type UploadFile } from "@/lib/upload-service";
 import { FILE_SIZE_LIMITS, ALLOWED_FILE_TYPES } from "@/lib/file-utils";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
 
 interface FileUploadZoneProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ interface FileUploadZoneProps {
 export function FileUploadZone({ onClose }: FileUploadZoneProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const { toast } = useToast();
+  const t = useTranslations("UploadZone");
 
   // Use unified upload for consistency with other components
   const { uploadFiles, uploads, isUploading, removeUpload } = useUnifiedUpload({
@@ -29,19 +31,12 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
     refreshDocuments: true,
     onUploadComplete: (fileId: string, filename: string) => {
       console.log("FileUploadZone: Upload completed:", filename);
-      toast({
-        title: "Upload Successful",
-        description: `${filename} uploaded successfully`,
-      });
+      toast({ title: t("successTitle"), description: t("successDesc", { filename }) });
     },
     onUploadError: (fileId: string, error: string) => {
       console.error("FileUploadZone: Upload error:", error);
       setUploadError(error);
-      toast({
-        title: "Upload Failed",
-        description: error,
-        variant: "destructive",
-      });
+      toast({ title: t("failedTitle"), description: error, variant: "destructive" });
     },
   });
 
@@ -52,20 +47,20 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
       // Validate files
       const validFiles = acceptedFiles.filter((file) => {
         if (file.size > FILE_SIZE_LIMITS.GENERAL_UPLOAD) {
-          const errorMsg = `File ${file.name} is too large. Maximum size is ${FILE_SIZE_LIMITS.GENERAL_UPLOAD / 1024 / 1024}MB.`;
+          const errorMsg = t("tooLarge", { name: file.name, size: FILE_SIZE_LIMITS.GENERAL_UPLOAD / 1024 / 1024 });
           setUploadError(errorMsg);
           toast({
-            title: "File Too Large",
+            title: t("tooLargeTitle"),
             description: errorMsg,
             variant: "destructive",
           });
           return false;
         }
         if (!ALLOWED_FILE_TYPES.ALL.includes(file.type as any)) {
-          const errorMsg = `File type ${file.type} is not supported.`;
+          const errorMsg = t("unsupportedTypeDesc", { type: file.type });
           setUploadError(errorMsg);
           toast({
-            title: "Unsupported File Type",
+            title: t("unsupportedTypeTitle"),
             description: errorMsg,
             variant: "destructive",
           });
@@ -142,14 +137,14 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
           <input {...getInputProps()} />
           <UploadIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
           {isDragActive ? (
-            <p className="text-sm text-muted-foreground">Drop files here...</p>
+            <p className="text-sm text-muted-foreground">{t("dropHere")}</p>
           ) : (
             <div>
               <p className="text-sm text-muted-foreground mb-1">
-                Drag files here or click to select
+                {t("dragOrClick")}
               </p>
               <p className="text-xs text-muted-foreground">
-                Supports images, PDFs, text files (max 10MB each)
+                {t("supports")}
               </p>
             </div>
           )}
@@ -188,17 +183,11 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
                   <p className="text-xs text-muted-foreground">
                     {(upload.file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
-                  {upload.status === "processing" && (
-                    <p className="text-xs text-blue-600">
-                      Processing for mention documents...
-                    </p>
-                  )}
+                  {upload.status === "processing" && (<p className="text-xs text-blue-600">{t("processingMentions")}</p>)}
                   {upload.status === "uploading" && (
                     <div className="mt-1">
                       <Progress value={upload.progress || 0} className="h-2" />
-                      <p className="text-xs text-blue-600 mt-1">
-                        Uploading to uploaded-documents KB...
-                      </p>
+                      <p className="text-xs text-blue-600 mt-1">{t("uploadingToDefaultKb")}</p>
                     </div>
                   )}
                   {upload.status === "error" && (
@@ -206,16 +195,8 @@ export function FileUploadZone({ onClose }: FileUploadZoneProps) {
                       {upload.error}
                     </p>
                   )}
-                  {upload.status === "completed" && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Upload complete - Ready for mentions
-                    </p>
-                  )}
-                  {upload.result?.message?.includes("duplicate") && (
-                    <Badge variant="secondary" className="text-xs mt-1">
-                      Duplicate file - using existing
-                    </Badge>
-                  )}
+                  {upload.status === "completed" && (<p className="text-xs text-green-600 mt-1">{t("uploadComplete")}</p>)}
+                  {upload.result?.message?.includes("duplicate") && (<Badge variant="secondary" className="text-xs mt-1">{t("duplicate")}</Badge>)}
                 </div>
                 <Button
                   variant="ghost"

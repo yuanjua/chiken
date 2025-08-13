@@ -39,12 +39,14 @@ import {
 } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import { generateMCPConfig, formatMCPConfigJSON } from "@/lib/mcp-utils";
+import { useTranslations } from "next-intl";
 
 interface MCPConfigDialogProps {
   children?: React.ReactNode;
 }
 
 export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
+  const t = useTranslations("MCP.Config");
   const [open, setOpen] = useState(false);
   const [transport, setTransport] = useState("stdio");
   const [port, setPort] = useState(8000);
@@ -122,11 +124,7 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
       setMcpStatus(status);
     } catch (error) {
       console.error("Failed to load MCP config:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load MCP configuration",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: t("loadFailed"), variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -163,18 +161,10 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
       const status = await getMCPStatus();
       setMcpStatus(status);
 
-      toast({
-        title: "Success",
-        description:
-          "MCP configuration saved and server restarted successfully",
-      });
+      toast({ title: t("success"), description: t("savedAndRestarted") });
     } catch (error) {
       console.error("Failed to save and restart MCP server:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save configuration and restart MCP server",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: t("saveRestartFailed"), variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -188,20 +178,13 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
         await nav.clipboard.writeText(configJSON);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
-        toast({
-          title: "Copied",
-          description: "MCP configuration copied to clipboard",
-        });
+      toast({ title: t("copied"), description: t("copiedDesc") });
       } else {
         throw new Error("Clipboard API not available");
       }
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
-      toast({
-        title: "Error",
-        description: "Failed to copy configuration to clipboard",
-        variant: "destructive",
-      });
+      toast({ title: t("error"), description: t("copyFailed"), variant: "destructive" });
     }
   };
 
@@ -218,13 +201,13 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col pl-10">
         <DialogHeader>
-          <DialogTitle>MCP Server Configuration</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Loading configuration...</span>
+            <span className="ml-2">{t("loading")}</span>
           </div>
         ) : (
           <ScrollArea className="flex-1 min-h-0 max-w-full overflow-y-auto">
@@ -236,22 +219,20 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
                     <Circle
                       className={`h-2 w-2 ${mcpStatus.is_running ? "fill-green-500 text-green-500" : "fill-red-500 text-red-500"}`}
                     />
-                    <span className="text-sm">
-                      MCP Server: {mcpStatus.is_running ? "Running" : "Stopped"}
-                    </span>
+                    <span className="text-sm">{t("serverPrefix")} {mcpStatus.is_running ? t("running") : t("stopped")}</span>
                   </div>
                 )}
 
                 {/* Configuration Settings */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Server Settings</h3>
+                  <h3 className="text-sm font-medium">{t("serverSettings")}</h3>
                   
                   {/* Transport Type */}
                   <div className="space-y-2">
-                    <Label htmlFor="transport">Transport Type</Label>
+                    <Label htmlFor="transport">{t("transportType")}</Label>
                     <Select value={transport} onValueChange={setTransport}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select transport type" />
+                        <SelectValue placeholder={t("selectTransport")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="stdio">stdio</SelectItem>
@@ -266,7 +247,7 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
                   {/* Port (only for HTTP and SSE) */}
                   {requiresPort && (
                     <div className="space-y-2">
-                      <Label htmlFor="port">Port</Label>
+                      <Label htmlFor="port">{t("port")}</Label>
                       <Input
                         id="port"
                         type="number"
@@ -287,7 +268,7 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <FileCode className="h-4 w-4" />
-                      <h3 className="text-sm font-medium">MCP Client Configuration</h3>
+                      <h3 className="text-sm font-medium">{t("clientConfig")}</h3>
                     </div>
                     <Button
                       variant="ghost"
@@ -298,20 +279,18 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
                       {isCopied ? (
                         <>
                           <Check className="h-4 w-4 mr-1 text-green-600" />
-                          <span className="text-xs text-green-600">Copied!</span>
+                          <span className="text-xs text-green-600">{t("copied")}</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4 mr-1" />
-                          <span className="text-xs">Copy JSON</span>
+                          <span className="text-xs">{t("copyJson")}</span>
                         </>
                       )}
                     </Button>
                   </div>
                   
-                  <div className="text-xs text-muted-foreground">
-                    Copy this configuration for use in MCP clients (Claude Desktop, IDEs, etc.)
-                  </div>
+                  <div className="text-xs text-muted-foreground">{t("clientConfigDesc")}</div>
 
                   <div className="rounded-lg bg-muted/30 border">
                     <ScrollArea className="h-48 w-full">
@@ -333,12 +312,12 @@ export function MCPConfigDialog({ children }: MCPConfigDialogProps) {
                     {isProcessing ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Processing...
+                        {t("processing")}
                       </>
                     ) : (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2" />
-                        Save and Restart MCP Server
+                        {t("saveAndRestart")}
                       </>
                     )}
                   </Button>
