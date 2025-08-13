@@ -1,0 +1,57 @@
+{
+  "identifier": "main-capability",
+  "description": "Capability for the main window",
+  "local": true,
+  "windows": ["main"],
+  "permissions": [
+    "core:path:default",
+    "core:event:default",
+    "core:window:default",
+    "core:app:default",
+    "core:resources:default",
+    "core:menu:default",
+    "core:tray:default",
+    "core:window:allow-set-title",
+    "core:window:allow-close",
+    "core:window:allow-center",
+    "core:window:allow-minimize",
+    "core:window:allow-maximize",
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-is-maximized",
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "decorum:allow-show-snap-overlay",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "args": false,
+          "cmd": "",
+          "name": "bin/api/main",
+          "sidecar": true
+        }
+      ]
+    },
+    "shell:allow-open",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "http://**/"
+        },
+        {
+          "url": "https://**/"
+        }
+      ]
+    },
+    "shell:default",
+    "http:default",
+    "fs:default",
+    "dialog:default",
+    "dialog:allow-save",
+    "fs:allow-create",
+    "fs:allow-write-text-file",
+    "fs:scope-download-recursive"
+  ]
+}

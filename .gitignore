@@ -1,0 +1,57 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+/.kreuzberg
+SpaCyModels/
+
+# testing
+/coverage
+*.pytest_cache
+
+# next.js
+/.next/
+/out/
+/dist/
+
+# production
+*build/
+public/uploads/*
+/src/dist
+icons/
+
+# misc
+.DS_Store
+*.pem
+*.db
+*.db-shm
+*.db-wal
+*.sqlite*
+*chroma_db/
+app_data.db*
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+*.env
+
+.vscode/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# python
+**/__pycache__
+**/.venv
+*egg-info*/
+**/.python-version

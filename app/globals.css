@@ -1,0 +1,237 @@
+@import "tailwindcss";
+
+/* Explicitly register source paths for Tailwind v4 class detection */
+@source "./**/*.{js,jsx,ts,tsx}";
+
+/* Safelist critical animation classes for production builds */
+@source inline("translate-x-0 -translate-x-full translate-x-full");
+@source inline("transition-all duration-300 ease-in-out");
+@source inline("w-0 w-64 w-80 opacity-0 opacity-100");
+
+/* titlebar draggable area */
+[data-tauri-decorum-tb] {
+  height: 28px !important;
+}
+/* Pad top to leave space for titlebar */
+.main-content {
+  padding-top: 21px;
+}
+
+@theme {
+  --color-background: 0 0% 100%;
+  --color-foreground: 222.2 84% 4.9%;
+  --color-card: 0 0% 100%;
+  --color-card-foreground: 222.2 84% 4.9%;
+  --color-popover: 0 0% 100%;
+  --color-popover-foreground: 222.2 84% 4.9%;
+  --color-primary: 221.2 83.2% 53.3%;
+  --color-primary-foreground: 210 40% 98%;
+  --color-secondary: 210 40% 96%;
+  --color-secondary-foreground: 222.2 84% 4.9%;
+  --color-muted: 210 40% 96%;
+  --color-muted-foreground: 215.4 16.3% 46.9%;
+  --color-accent: 210 40% 96%;
+  --color-accent-foreground: 222.2 84% 4.9%;
+  --color-destructive: 0 84.2% 60.2%;
+  --color-destructive-foreground: 210 40% 98%;
+  --color-border: 214.3 31.8% 91.4%;
+  --color-input: 214.3 31.8% 91.4%;
+  --color-ring: 221.2 83.2% 53.3%;
+  --radius: 0.5rem;
+  --color-chart-1: 12 76% 61%;
+  --color-chart-2: 173 58% 39%;
+  --color-chart-3: 197 37% 24%;
+  --color-chart-4: 43 74% 66%;
+  --color-chart-5: 27 87% 67%;
+}
+
+/* Alias color variables for Tailwind utilities */
+:root {
+  /* Map Tailwind tokens to theme variables so utilities resolve correctly */
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+  --card: var(--color-card);
+  --card-foreground: var(--color-card-foreground);
+  --popover: var(--color-popover);
+  --popover-foreground: var(--color-popover-foreground);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-foreground: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Dark mode variables - Tailwind v4 approach */
+.dark {
+  --color-background: 222.2 84% 4.9%;
+  --color-foreground: 210 40% 98%;
+  --color-card: 222.2 84% 4.9%;
+  --color-card-foreground: 210 40% 98%;
+  --color-popover: 222.2 84% 4.9%;
+  --color-popover-foreground: 210 40% 98%;
+  --color-primary: 217.2 91.2% 59.8%;
+  --color-primary-foreground: 222.2 84% 4.9%;
+  --color-secondary: 217.2 32.6% 17.5%;
+  --color-secondary-foreground: 210 40% 98%;
+  --color-muted: 217.2 32.6% 17.5%;
+  --color-muted-foreground: 215 20.2% 65.1%;
+  --color-accent: 217.2 32.6% 17.5%;
+  --color-accent-foreground: 210 40% 98%;
+  --color-destructive: 0 62.8% 30.6%;
+  --color-destructive-foreground: 210 40% 98%;
+  --color-border: 217.2 32.6% 17.5%;
+  --color-input: 217.2 32.6% 17.5%;
+  --color-ring: 224.3 76.3% 94.1%;
+  --color-chart-1: 220 70% 50%;
+  --color-chart-2: 160 60% 45%;
+  --color-chart-3: 30 80% 55%;
+  --color-chart-4: 280 65% 60%;
+  --color-chart-5: 340 75% 55%;
+}
+
+
+.dark * {
+  border-color: hsl(var(--border));
+}
+
+/* KaTeX/LaTeX styling improvements */
+.katex-container {
+  /* Prevent layout shifts during KaTeX rendering */
+  contain: layout style;
+}
+
+/* KaTeX display math styling */
+.katex-display {
+  margin: 1em 0 !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Provide minimum height to reduce layout shift */
+  min-height: 2em;
+  /* Center the content */
+  text-align: center;
+}
+
+/* KaTeX inline math styling */
+.katex {
+  /* Ensure inline math doesn't cause line height issues */
+  line-height: inherit;
+  /* Provide baseline alignment */
+  vertical-align: baseline;
+}
+
+/* Prevent KaTeX from causing horizontal overflow */
+.katex-display > .katex {
+  white-space: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: inline-block;
+}
+
+/* Smooth transitions for KaTeX rendering */
+.katex-container .katex-display,
+.katex-container .katex {
+  opacity: 0;
+  animation: katex-fade-in 0.3s ease-in-out forwards;
+}
+
+@keyframes katex-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* button */
+button:hover {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  /* Add other effects as needed, e.g. box-shadow, border, etc. */
+}
+
+.dark button:hover {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+/* Proofreading Agent Highlighting Styles */
+.markdown-content {
+  /* Ensure proofreading highlights display correctly */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Custom button animations for sidebar toggles */
+.sidebar-button {
+  transition: all 0.3s ease-in-out !important;
+  transform-origin: center !important;
+}
+
+.sidebar-button:hover {
+  transform: scale(1.1) !important;
+  background-color: #fecaca !important; /* red-200 */
+}
+
+.sidebar-button:active {
+  transform: scale(0.9) !important;
+}
+
+.sidebar-icon {
+  transition: transform 0.3s ease-in-out !important;
+  transform-origin: center !important;
+}
+
+.sidebar-icon-rotate {
+  transform: rotate(180deg) !important;
+}
+
+.sidebar-icon-rotate-hover:hover {
+  transform: rotate(45deg) !important;
+}
+
+.sidebar-icon-scale {
+  transform: scale(1.25) !important;
+}
+
+/* Dark mode animation adjustments */
+.dark .ai-generating-dot {
+  transform: scale(1.25) !important;
+}
+
+/* Hide scrollbar when not scrolling */
+.hide-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.hide-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hide-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.hide-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+}

@@ -1,0 +1,135 @@
+name: "Tauri Release"
+
+permissions:
+  contents: write
+  actions: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: "Release name and tag"
+        required: true
+      release_type:
+        description: "Type of release (draft, private, public)"
+        required: true
+        default: "draft"
+      release_notes:
+        description: "Release notes (optional)"
+        required: false
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }} and Upload Artifacts
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest] # builds for each platform, in seperate vm's, in this order
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for proper Git submodule initialization
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies with uv
+        run: |
+          pip install uv
+          uv pip install -r pyproject.toml --extra dev --system
+
+      - name: Install pnpm and dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+          pnpm install
+
+      - name: Install system dependencies for Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build icons
+        run: pnpm build:icons
+
+      - name: Import Apple Developer Certificate
+        if: matrix.os == 'macos-latest'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning build.keychain
+
+      - name: Verify Certificate
+        if: matrix.os == 'macos-latest'
+        run: |
+          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID Application")
+          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
+          echo "Found Certificate ID: $CERT_ID"
+          echo "APPLE_SIGNING_IDENTITY=$CERT_ID" >> $GITHUB_ENV
+
+      - name: Build Python sidecar
+        shell: bash # ensure cross-platform compatibility with Bash syntax
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pnpm build:sidecar-linux
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            pnpm build:sidecar-macos
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            pnpm build:sidecar-winos
+          fi
+
+      - name: Create API Key file for Notarization
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p private_keys
+          echo "${{ secrets.APPLE_API_KEY }}" > private_keys/AuthKey.p8
+          echo "APPLE_API_KEY_PATH=$(pwd)/private_keys/AuthKey.p8" >> $GITHUB_ENV
+
+      - name: Build and Sign Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing/notarization secrets (only used on macOS)
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
+          # Notarization API Key
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY_ID }} # APPLE_API_KEY is the ID in tauri
+          APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
+        with:
+          tagName: ${{ github.event.inputs.release_name }}
+          releaseName: ${{ github.event.inputs.release_name }}
+          releaseBody: ${{ github.event.inputs.release_notes }}
+          releaseDraft: ${{ github.event.inputs.release_type == 'draft' }}
+          releasePrerelease: ${{ github.event.inputs.release_type == 'private' }}
+          args: "" # Add platform-specific args if needed

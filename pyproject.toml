@@ -1,0 +1,43 @@
+[project]
+name = "chiken"
+version = "0.1.0"
+description = "ChiKen!"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiosqlite>=0.21.0",
+    "chromadb==1.0.15",
+    "duckduckgo-search>=8.0.2",
+    "fastapi[all]>=0.115.12",
+    "fastmcp>=2.10.5",
+    "filetype>=1.2.0",
+    "httpx[socks]>=0.28.1",
+    "keyring>=25.6.0",
+    "kreuzberg>=3.10.0",
+    "langchain>=0.3.25",
+    "langchain-chroma>=0.2.3",
+    "langchain-community>=0.3.24",
+    "langchain-litellm>=0.2.2",
+    "langchain-mcp-adapters>=0.1.9",
+    "langchain-mongodb>=0.6.2",
+    "langgraph>=0.4.8",
+    "langgraph-checkpoint-sqlite>=2.0.10",
+    "langmem>=0.0.28",
+    "litellm>=1.74",
+    "loguru>=0.7.3",
+    "markdownify>=1.1.0",
+    "pyzotero>=1.6.11",
+    "regex>=2024.11.6",
+    "setuptools==80.9.0",
+    "sse-starlette>=2.3.6",
+    "tokenizers>=0.21.1",
+    "uvicorn>=0.34.3",
+]
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+    "pyinstaller>=6.14.0",
+]
