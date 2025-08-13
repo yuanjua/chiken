@@ -26,6 +26,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { KnowledgeBaseManageSingleDialog } from "./KnowledgeBaseManageSingleDialog";
 import { useKnowledgeBaseActions } from "@/hooks/useKnowledgeBaseActions";
 import type { KnowledgeBase } from "@/store/ragAtoms";
@@ -35,6 +36,7 @@ interface KnowledgeBaseListProps {
 }
 
 export function KnowledgeBaseList({ setIsLoading }: KnowledgeBaseListProps) {
+  const t = useTranslations("KB.List");
   const [knowledgeBases, setKnowledgeBases] = useAtom(knowledgeBasesAtom);
   const [activeKnowledgeBaseIds, setActiveKnowledgeBaseIds] = useAtom(
     selectedKnowledgeBaseIdsAtom,
@@ -112,13 +114,13 @@ export function KnowledgeBaseList({ setIsLoading }: KnowledgeBaseListProps) {
     <div className="p-4">
       <div className="flex items-center">
         <h3 className="text-sm font-medium text-muted-foreground pb-2">
-          Active Knowledge Bases
+          {t("activeTitle")}
         </h3>
       </div>
       <ul className="max-h-32 overflow-y-auto border border-gray-400 rounded-sm divide-y divide-border divide-gray-200">
         {knowledgeBases.length === 0 ? (
           <div className="text-center py-4 text-sm text-muted-foreground">
-            No knowledge bases found. Create one to get started.
+            {t("empty")}
           </div>
         ) : (
           knowledgeBases.map((kb) => {
@@ -198,8 +200,7 @@ export function KnowledgeBaseList({ setIsLoading }: KnowledgeBaseListProps) {
       {activeKnowledgeBaseIds.length > 0 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
           <span>
-            Clear {activeKnowledgeBaseIds.length} knowledge base
-            {activeKnowledgeBaseIds.length > 1 ? "s" : ""} to just chat 😊
+            {t("clearHint", { count: activeKnowledgeBaseIds.length })}
           </span>
           <Button
             variant="ghost"
@@ -209,7 +210,7 @@ export function KnowledgeBaseList({ setIsLoading }: KnowledgeBaseListProps) {
             }}
             className="h-4 px-2 text-xs"
           >
-            Clear
+            {t("clear")}
           </Button>
         </div>
       )}

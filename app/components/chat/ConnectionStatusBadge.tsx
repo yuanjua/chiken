@@ -5,8 +5,10 @@ import { chatService } from "@/lib/chat-service";
 import { ProviderConfig } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function ConnectionStatusBadge() {
+  const t = useTranslations("Common");
   const [selectedModel] = useAtom(selectedModelAtom);
   const [connectionStatus, setConnectionStatus] = useState<
     "idle" | "connected" | "error" | "testing"
@@ -47,28 +49,28 @@ export function ConnectionStatusBadge() {
         return (
           <Badge variant="default" className="flex items-center gap-1">
             <CheckCircle className="w-3 h-3" />
-            Connected
+            {t("connected")}
           </Badge>
         );
       case "error":
         return (
           <Badge variant="destructive" className="flex items-center gap-1">
             <XCircle className="w-3 h-3" />
-            Disconnected
+            {t("disconnected")}
           </Badge>
         );
       case "testing":
         return (
           <Badge variant="secondary" className="flex items-center gap-1">
             <Loader2 className="w-3 h-3 animate-spin" />
-            Testing...
+            {t("testing")}
           </Badge>
         );
       default:
         return (
           <Badge variant="outline" className="flex items-center gap-1">
             <XCircle className="w-3 h-3" />
-            Not tested
+            {t("notTested")}
           </Badge>
         );
     }

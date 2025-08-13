@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toCsv, toMarkdown } from "@/lib/dom-table";
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTranslations } from "next-intl";
 
 type Props = {
   open: boolean;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function SearchTableDialog({ open, onOpenChange, headers, records }: Props) {
+  const t = useTranslations("Common");
   const [selected, setSelected] = useState<boolean[]>([]);
   const [threshold, setThreshold] = useState<number>(7);
 
@@ -37,26 +39,26 @@ export function SearchTableDialog({ open, onOpenChange, headers, records }: Prop
   const handleCopyMarkdown = async () => {
     const md = toMarkdown(headers, selectedRecords);
     await (globalThis as any).navigator?.clipboard?.writeText(md);
-    toast({ title: "Copied", description: "Table copied as Markdown" });
+    toast({ title: t("copied"), description: t("tableCopiedMarkdown") });
   };
   const handleCopyCsv = async () => {
     const csv = toCsv(headers, selectedRecords);
     await (globalThis as any).navigator?.clipboard?.writeText(csv);
-    toast({ title: "Copied", description: "Table copied as CSV" });
+    toast({ title: t("copied"), description: t("tableCopiedCsv") });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Export Table</DialogTitle>
+          <DialogTitle>{t("exportTable")}</DialogTitle>
         </DialogHeader>
         <div className="max-h-[68vh] w-full overflow-auto border border-gray-300 dark:border-gray-500 rounded mb-3">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-muted/40">
                 <th className="p-2 w-8"></th>
-                <th className="p-2 text-left">Title</th>
+                <th className="p-2 text-left">{t("title")}</th>
               </tr>
             </thead>
             <tbody>
@@ -83,7 +85,7 @@ export function SearchTableDialog({ open, onOpenChange, headers, records }: Prop
           </table>
         </div>
         <div className="flex items-center gap-3 mb-2">
-          <label className="text-sm text-muted-foreground">Relevance ≥</label>
+          <label className="text-sm text-muted-foreground">{t("relevanceAtLeast")}</label>
           <input
             type="number"
             className="w-16 border rounded px-2 py-1 text-sm bg-transparent"
@@ -95,9 +97,9 @@ export function SearchTableDialog({ open, onOpenChange, headers, records }: Prop
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" onClick={handleCopyMarkdown}>Copy Markdown</Button>
-          <Button variant="secondary" size="sm" onClick={handleCopyCsv}>Copy CSV</Button>
-          <Button variant="secondary" size="sm" onClick={() => toast({ title: "In development", description: "Add to Zotero collection feature coming soon" })}>Add to Zotero collection</Button>
+          <Button variant="secondary" size="sm" onClick={handleCopyMarkdown}>{t("copyMarkdown")}</Button>
+          <Button variant="secondary" size="sm" onClick={handleCopyCsv}>{t("copyCsv")}</Button>
+          <Button variant="secondary" size="sm" onClick={() => toast({ title: t("inDevelopment"), description: t("addToZoteroSoon") })}>{t("addToZotero")}</Button>
         </div>
       </DialogContent>
     </Dialog>

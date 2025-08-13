@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Zap, Palette, Brain } from "lucide-react";
 import { EnvVariablesConfig } from "@/components/config/EnvVariablesConfig";
+import { useTranslations } from "next-intl";
 
 interface SettingsDialogProps {
   children?: React.ReactNode;
@@ -47,6 +48,7 @@ export function SettingsDialog({
   const [selectedModel, setSelectedModel] = useAtom(selectedModelAtom);
   const [theme, setTheme] = useAtom(themeAtom);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const t = useTranslations("Settings");
 
   // Fetch config on dialog open and set initial state
   useEffect(() => {
@@ -103,10 +105,10 @@ export function SettingsDialog({
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Settings
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            Configure your AI chat experience and model parameters.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,7 +121,7 @@ export function SettingsDialog({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4" />
-                <Label className="text-sm font-medium">Provider & Model</Label>
+                <Label className="text-sm font-medium">{t("providerAndModel")}</Label>
               </div>
               <ProviderConfigButton simpleContent={true} refreshTrigger={refreshTrigger} />
             </div>
@@ -130,13 +132,13 @@ export function SettingsDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Brain className="h-4 w-4" />
-                <Label className="text-sm font-medium">Model Parameters</Label>
+                <Label className="text-sm font-medium">{t("modelParameters")}</Label>
               </div>
 
               {/* Temperature */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Temperature</Label>
+                  <Label className="text-sm">{t("temperature")}</Label>
                   <span className="text-sm text-muted-foreground">
                     {selectedModel.temperature}
                   </span>
@@ -149,16 +151,13 @@ export function SettingsDialog({
                   step={0.1}
                   className="w-full"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Controls randomness. Lower values make responses more
-                  deterministic and less creative, vice versa for higher values.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("temperatureHelp")}</p>
               </div>
 
               {/* Context Size */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">Context Size</Label>
+                  <Label className="text-sm">{t("contextSize")}</Label>
                   <span className="text-sm text-muted-foreground">
                     {formatContextSize(selectedModel.numCtx || 4096)}
                   </span>
@@ -171,10 +170,7 @@ export function SettingsDialog({
                   step={512}
                   className="w-full"
                 />
-                <p className="text-xs text-muted-foreground">
-                  For Ollama users: Maximum tokens the model can remember in one conversation. 
-                  Higher values allow for longer chats, but may use more computer memory.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("contextSizeHelp")}</p>
               </div>
             </div>
 
@@ -189,12 +185,10 @@ export function SettingsDialog({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Palette className="h-4 w-4" />
-                <Label className="text-sm font-medium">Appearance</Label>
+                <Label className="text-sm font-medium">{t("appearance")}</Label>
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="theme-select" className="text-sm">
-                  Theme
-                </Label>
+                <Label htmlFor="theme-select" className="text-sm">{t("theme")}</Label>
                 <Select
                   value={theme}
                   onValueChange={(value: any) => setTheme(value)}
@@ -203,9 +197,9 @@ export function SettingsDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="light">{t("themeLight")}</SelectItem>
+                    <SelectItem value="dark">{t("themeDark")}</SelectItem>
+                    <SelectItem value="system">{t("themeSystem")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -234,7 +228,7 @@ export function SettingsDialog({
             <span className="inline-block mr-1">
               <FaGithub />
             </span>
-            <span className="text-sm">Report a bug</span>
+            <span className="text-sm">{t("reportBug")}</span>
           </a>
           <SaveConfigButton />
         </div>

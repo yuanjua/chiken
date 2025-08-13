@@ -27,12 +27,14 @@ import {
 import { FileUploadZone } from "../upload/FileUploadZone";
 import { useUnifiedUpload } from "@/hooks/useUnifiedUpload";
 import { getKnowledgeBaseDocuments } from "@/lib/api-client";
+import { useTranslations } from "next-intl";
 
 interface InputControlsProps {
   isLoading: boolean;
 }
 
 export function InputControls({ isLoading }: InputControlsProps) {
+  const t = useTranslations("Common");
   const [activeKbId] = useAtom(activeKnowledgeBaseIdAtom);
   const [selectedAgent, setSelectedAgent] = useAtom(selectedAgentAtom);
   const [selectedMentionDocs, setSelectedMentionDocs] = useAtom(
@@ -172,7 +174,7 @@ export function InputControls({ isLoading }: InputControlsProps) {
     e.preventDefault();
     if (selectedKbIds.length === 0 && !activeKbId) {
       if (typeof globalThis !== "undefined" && (globalThis as any).alert) {
-        (globalThis as any).alert("Please select at least one knowledge base first");
+        (globalThis as any).alert(t("selectKbFirst"));
       }
       return;
     }
@@ -235,28 +237,27 @@ export function InputControls({ isLoading }: InputControlsProps) {
             }}
           >
             <div className="p-2 flex-shrink-0 rounded-t-lg border-b space-y-1">
-              <div className="text-sm font-medium">Select Documents</div>
+              <div className="text-sm font-medium">{t("selectDocuments")}</div>
               <div className="text-xs text-muted-foreground">
-                Click to select/deselect • {selectedMentionDocs.length} selected
-                • {availableDocuments.length} docs
+                {t("selectDocsHint", { selected: selectedMentionDocs.length, total: availableDocuments.length })}
               </div>
               {/* Search Box */}
               <input
                 type="text"
                 value={docSearch}
                 onChange={(e) => setDocSearch(e.target.value)}
-                placeholder="Search documents"
+                placeholder={t("searchDocuments")}
                 className="w-full px-2 py-1 text-xs border rounded-md"
               />
             </div>
             <div className="flex-1 overflow-y-auto max-h-48">
               {loadingDocuments ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
-                  Loading documents...
+                  {t("loadingDocuments")}
                 </div>
               ) : availableDocuments.length === 0 ? (
                 <div className="p-4 text-center text-sm text-muted-foreground">
-                  No documents found in this knowledge base
+                  {t("noDocsInKb")}
                 </div>
               ) : (
                 availableDocuments

@@ -7,6 +7,7 @@ import { MessageItem } from "./MessageItem";
 import { AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 interface MessageListProps {
   messages: Message[];
@@ -29,6 +30,7 @@ export function MessageList({
   onLoadOlder,
   hasMore = false,
 }: MessageListProps) {
+  const t = useTranslations("Common");
   const viewportRef = useRef<HTMLDivElement>(null);
   const userScrolledUp = useRef(false);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
@@ -86,11 +88,9 @@ export function MessageList({
   if (messages.length === 0 && !isLoading && !error) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center">
-        <img src="/bachelor-cap.png" alt="Bot" className="h-32 mb-4" onContextMenu={e => e.preventDefault()}/>
-        <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-        <p className="text-muted-foreground">
-          Ask anything or include documents for context-aware responses.
-        </p>
+        <img src="/bachelor-cap.png" alt={t("botAlt")} className="h-32 mb-4" onContextMenu={e => e.preventDefault()}/>
+        <h3 className="text-lg font-semibold mb-2">{t("startConversation")}</h3>
+        <p className="text-muted-foreground">{t("emptyHint")}</p>
       </div>
     );
   }

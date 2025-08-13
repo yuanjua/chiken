@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Minus, Plus, Info, Key } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type EditableVar = {
   name: string;
@@ -19,6 +20,7 @@ type EditableVar = {
 };
 
 export function EnvVariablesConfig() {
+  const t = useTranslations("EnvVars");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,19 +38,19 @@ export function EnvVariablesConfig() {
       try {
         // Recommended variables (local, no backend dependency)
         const recommended = [
-          { name: "OPENAI_API_KEY", description: "OpenAI API key" },
-          { name: "ANTHROPIC_API_KEY", description: "Anthropic API key" },
-          { name: "AZURE_API_KEY", description: "Azure OpenAI API key" },
-          { name: "REPLICATE_API_KEY", description: "Replicate API key" },
-          { name: "COHERE_API_KEY", description: "Cohere API key" },
-          { name: "OPENROUTER_API_KEY", description: "OpenRouter API key" },
-          { name: "TOGETHERAI_API_KEY", description: "Together AI API key" },
-          { name: "HF_TOKEN", description: "Hugging Face token" },
-          { name: "OPENAI_BASE_URL", description: "Custom OpenAI-compatible base URL" },
-          { name: "OLLAMA_API_BASE", description: "Ollama server base URL (default http://localhost:11434)" },
-          { name: "ACADEMIC_MAILTO", description: "Enter email to increase rate limit to academic search" },
-          { name: "SEMANTIC_SCHOLAR_API_KEY", description: "Semantic Scholar API key to increase rate limit" },
-          { name: "NCBI_API_KEY", description: "NCBI/PubMed API key to increase rate limit" },
+          { name: "OPENAI_API_KEY", description: t("descOpenAI") },
+          { name: "ANTHROPIC_API_KEY", description: t("descAnthropic") },
+          { name: "AZURE_API_KEY", description: t("descAzure") },
+          { name: "REPLICATE_API_KEY", description: t("descReplicate") },
+          { name: "COHERE_API_KEY", description: t("descCohere") },
+          { name: "OPENROUTER_API_KEY", description: t("descOpenRouter") },
+          { name: "TOGETHERAI_API_KEY", description: t("descTogether") },
+          { name: "HF_TOKEN", description: t("descHF") },
+          { name: "OPENAI_BASE_URL", description: t("descOpenAIBase") },
+          { name: "OLLAMA_API_BASE", description: t("descOllamaBase") },
+          { name: "ACADEMIC_MAILTO", description: t("descAcademicMailto") },
+          { name: "SEMANTIC_SCHOLAR_API_KEY", description: t("descS2") },
+          { name: "NCBI_API_KEY", description: t("descNCBI") },
         ];
 
         const recMap = new Map<string, string | undefined>();
@@ -177,7 +179,7 @@ export function EnvVariablesConfig() {
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Key className="h-4 w-4" />
-        <Label className="text-sm font-medium"> Environment Variables </Label>
+        <Label className="text-sm font-medium"> {t("title")} </Label>
         <div
           className="relative"
           onMouseEnter={() => {
@@ -201,7 +203,7 @@ export function EnvVariablesConfig() {
                 color: "hsl(var(--color-popover-foreground))",
               }}
             >
-              <div className="px-3 py-2 border-b text-xs font-medium text-muted-foreground">Recommended variables</div>
+              <div className="px-3 py-2 border-b text-xs font-medium text-muted-foreground">{t("recommended")}</div>
               <div className="max-h-60 overflow-auto p-3">
                 <table className="w-full text-xs">
                   <colgroup>
@@ -218,7 +220,7 @@ export function EnvVariablesConfig() {
                       ))
                     ) : (
                       <tr>
-                        <td className="py-1 text-[11px] text-muted-foreground" colSpan={2}>No recommendations available.</td>
+                        <td className="py-1 text-[11px] text-muted-foreground" colSpan={2}>{t("noRecommendations")}</td>
                       </tr>
                     )}
                   </tbody>

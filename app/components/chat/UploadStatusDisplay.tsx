@@ -1,7 +1,9 @@
 import { X } from "lucide-react";
 import { useUnifiedUpload } from "@/hooks/useUnifiedUpload";
+import { useTranslations } from "next-intl";
 
 export function UploadStatusDisplay() {
+  const t = useTranslations("Common");
   const { activeUploads, failedUploads, removeUpload } = useUnifiedUpload();
 
   return (
@@ -19,8 +21,8 @@ export function UploadStatusDisplay() {
               </span>
               <span className="text-xs">
                 {upload.status === "uploading"
-                  ? "Uploading..."
-                  : "Processing..."}
+                  ? t("uploading")
+                  : t("processing")}
               </span>
             </div>
           ))}

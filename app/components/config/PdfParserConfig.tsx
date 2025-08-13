@@ -11,6 +11,7 @@ import {
 import { FileText } from "lucide-react";
 import { ModelConfig } from "@/store/chatAtoms";
 import { FaGithub } from "react-icons/fa";
+import { useTranslations } from "next-intl";
 
 interface PdfParserConfigProps {
   selectedModel: ModelConfig;
@@ -21,6 +22,7 @@ export function PdfParserConfig({
   selectedModel,
   updateSelectedModelConfig,
 }: PdfParserConfigProps) {
+  const t = useTranslations("PDF");
   const isParserServer = selectedModel.pdfParserType === "remote";
   const isKreuzbergParser = selectedModel.pdfParserType === "kreuzberg";
 
@@ -28,7 +30,7 @@ export function PdfParserConfig({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <FileText className="w-4 h-4" />
-        <Label className="text-sm font-medium">PDF Parser Configuration</Label>
+        <Label className="text-sm font-medium">{t("title")}</Label>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -36,7 +38,7 @@ export function PdfParserConfig({
         <div className="lg:col-span-2 space-y-2">
           {/* Parser Type Selection */}
           <div>
-            <Label htmlFor="pdfParserType">Parser Type</Label>
+            <Label htmlFor="pdfParserType">{t("parserType")}</Label>
             <Select
               value={selectedModel.pdfParserType || "kreuzberg"}
               onValueChange={(value: "kreuzberg" | "remote") =>
@@ -44,11 +46,11 @@ export function PdfParserConfig({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select PDF parser type" />
+                <SelectValue placeholder={t("selectParserType")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="kreuzberg">Kreuzberg (Local)</SelectItem>
-                <SelectItem value="remote">Parser Server</SelectItem>
+                <SelectItem value="kreuzberg">{t("kreuzbergLocal")}</SelectItem>
+                <SelectItem value="remote">{t("parserServer")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -56,7 +58,7 @@ export function PdfParserConfig({
           {/* Parser Server URL */}
           {isParserServer && (
             <div>
-              <Label htmlFor="pdfParserUrl">Parser Server URL</Label>
+              <Label htmlFor="pdfParserUrl">{t("serverUrl")}</Label>
               <Input
                 id="pdfParserUrl"
                 value={selectedModel.pdfParserUrl || "http://127.0.0.1:24008"}
@@ -74,12 +76,8 @@ export function PdfParserConfig({
           <div className="text-sm p-3 bg-muted rounded-lg h-full flex flex-col justify-center">
             {isParserServer ? (
               <div>
-                <strong className="text-foreground">Parser Server</strong>
-                <p className="text-muted-foreground mt-1">
-                  Uses advanced AI models for superior layout-aware text extraction, formula
-                  recognition, table parsing, and OCR capabilities. Requires a
-                  running remote or local server and longer parsing time.
-                </p>
+                <strong className="text-foreground">{t("parserServer")}</strong>
+                <p className="text-muted-foreground mt-1">{t("parserServerDesc")}</p>
                 <a
                   href="https://github.com/yuanjua/MinerU-API"
                   target="_blank"
@@ -94,13 +92,8 @@ export function PdfParserConfig({
               </div>
             ) : (
               <div>
-                <strong className="text-foreground">Kreuzberg Parser</strong>
-                <p className="text-muted-foreground mt-1">
-                  Local text extraction using Kreuzberg library with
-                  support for complex layouts and tables. 
-                  (OCR currently not implemented. Limited support for Latex formulas.
-                  For math heavy documents, consider using the Parser Server.)
-                </p>
+                <strong className="text-foreground">{t("kreuzberg")}</strong>
+                <p className="text-muted-foreground mt-1">{t("kreuzbergDesc")}</p>
               </div>
             )}
           </div>

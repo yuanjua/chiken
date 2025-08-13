@@ -114,6 +114,22 @@ export function StartupScreen({ onReady }: StartupScreenProps) {
   }, [onReady, setIsBackendLoading, setIsBackendReady]);
 
   return (
-    <div className="h-screen w-screen bg-background flex items-center justify-center"></div>
+    <div className="h-screen w-screen bg-background flex items-center justify-center">
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">{status}</p>
+        {sidecarErrors.length > 0 && (
+          <div className="mt-2 text-xs text-destructive max-w-md mx-auto text-left">
+            {sidecarErrors.map((err, idx) => (
+              <div key={idx} className="truncate" title={err}>
+                {err}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

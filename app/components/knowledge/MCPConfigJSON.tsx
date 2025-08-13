@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Copy, Check, FileCode, Info, ExternalLink } from 'lucide-react';
 import { generateExampleConfigs, getSidecarBinaryPath } from '@/lib/mcp-utils';
+import { useTranslations } from "next-intl";
 
 export function MCPConfigJSON() {
+  const t = useTranslations("MCP.JSON");
   const [configs, setConfigs] = useState<{
     stdio: string;
     http: string;
@@ -69,12 +71,12 @@ export function MCPConfigJSON() {
         {isCopied ? (
           <>
             <Check className="h-4 w-4 mr-1 text-green-600" />
-            <span className="text-xs text-green-600">Copied!</span>
+            <span className="text-xs text-green-600">{t("copied")}</span>
           </>
         ) : (
           <>
             <Copy className="h-4 w-4 mr-1" />
-            <span className="text-xs">Copy</span>
+            <span className="text-xs">{t("copy")}</span>
           </>
         )}
       </Button>
@@ -122,11 +124,11 @@ export function MCPConfigJSON() {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <FileCode className="h-5 w-5" />
-          <h3 className="text-sm font-medium">MCP Configuration</h3>
-          <Badge variant="outline" className="text-xs">Loading...</Badge>
+          <h3 className="text-sm font-medium">{t("title")}</h3>
+          <Badge variant="outline" className="text-xs">{t("loading")}</Badge>
         </div>
         <div className="text-xs text-muted-foreground">
-          Generating configuration examples...
+          {t("generating")}
         </div>
       </div>
     );
@@ -137,11 +139,11 @@ export function MCPConfigJSON() {
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <FileCode className="h-5 w-5" />
-          <h3 className="text-sm font-medium">MCP Configuration</h3>
-          <Badge variant="destructive" className="text-xs">Error</Badge>
+          <h3 className="text-sm font-medium">{t("title")}</h3>
+          <Badge variant="destructive" className="text-xs">{t("error")}</Badge>
         </div>
         <div className="text-xs text-red-500">
-          Failed to generate MCP configuration examples.
+          {t("failed")}
         </div>
       </div>
     );
@@ -151,19 +153,17 @@ export function MCPConfigJSON() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <FileCode className="h-5 w-5" />
-        <h3 className="text-sm font-medium">MCP Configuration</h3>
+        <h3 className="text-sm font-medium">{t("title")}</h3>
         <Badge variant="outline" className="text-xs">JSON</Badge>
       </div>
 
       <div className="text-xs text-muted-foreground space-y-2">
-        <p>
-          Copy and use these configurations to connect MCP clients to the knowledge base server.
-        </p>
+        <p>{t("desc")}</p>
         {binaryPath && binaryPath !== 'python' && (
           <div className="flex items-start gap-2 p-2 bg-blue-50 rounded text-blue-700 border border-blue-200">
             <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
-              <p className="font-medium">Tauri Sidecar Binary:</p>
+              <p className="font-medium">{t("sidecarBinary")}</p>
               <code className="text-xs bg-blue-100 px-1 py-0.5 rounded">{binaryPath}</code>
             </div>
           </div>
@@ -186,17 +186,17 @@ export function MCPConfigJSON() {
         <TabsContent value="stdio" className="space-y-3">
           <ConfigCard
             title="STDIO Transport"
-            description="Direct process communication via stdin/stdout. Recommended for desktop applications."
+            description={t("stdioDesc")}
             config={configs.stdio}
             configType="stdio"
-            badge="Recommended"
+            badge={t("recommended")}
           />
         </TabsContent>
 
         <TabsContent value="http" className="space-y-3">
           <ConfigCard
             title="HTTP Transport"
-            description="HTTP-based communication. Good for web-based clients and debugging."
+            description={t("httpDesc")}
             config={configs.http}
             configType="http"
           />
@@ -205,7 +205,7 @@ export function MCPConfigJSON() {
         <TabsContent value="sse" className="space-y-3">
           <ConfigCard
             title="Server-Sent Events"
-            description="SSE-based communication. Suitable for real-time web applications."
+            description={t("sseDesc")}
             config={configs.sse}
             configType="sse"
           />
@@ -220,7 +220,7 @@ export function MCPConfigJSON() {
           rel="noopener noreferrer"
           className="hover:text-foreground underline"
         >
-          Learn more about MCP configuration
+          {t("learnMore")}
         </a>
       </div>
     </div>

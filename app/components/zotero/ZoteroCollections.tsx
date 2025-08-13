@@ -24,6 +24,7 @@ import {
   type TreeNode,
 } from "@/store/uiAtoms";
 import { Button } from "../ui/button";
+import { useTranslations } from "next-intl";
 
 interface CollectionTreeItemProps {
   node: TreeNode;
@@ -138,6 +139,7 @@ interface ZoteroCollectionsProps {
 export default function ZoteroCollections({
   refreshTrigger,
 }: ZoteroCollectionsProps) {
+  const t = useTranslations("Zotero");
   const [collections, setCollections] = useAtom(zoteroCollectionsDataAtom);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -420,21 +422,19 @@ export default function ZoteroCollections({
 
   return (
     <div className="p-2">
-      {loading && <p>Loading Zotero collections...</p>}
+      {loading && <p>{t("loading")}</p>}
       {error && errorVisible && (
         <div
           className="p-4 my-2 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800"
           role="alert"
         >
-          <span className="font-medium">Error:</span> {error}
+          <span className="font-medium">{t("errorPrefix")}</span> {error}
         </div>
       )}
       {!loading && !error && collections.length === 0 && hasLoaded && (
         <div className="text-center py-4">
           <Database className="mx-auto h-8 w-8 text-gray-400" />
-          <p className="mt-2 text-sm text-gray-500">
-            No Zotero collections found.
-          </p>
+          <p className="mt-2 text-sm text-gray-500">{t("empty")}</p>
         </div>
       )}
       {!loading && !error && collections.length > 0 && (

@@ -28,4 +28,7 @@ const nextConfig = {
   // },
 };
 
-module.exports = nextConfig;
+// Integrate next-intl plugin and point to the request config module
+const withNextIntl = require('next-intl/plugin')('./i18n/request.ts');
+
+module.exports = withNextIntl(nextConfig);

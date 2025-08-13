@@ -1,5 +1,6 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "next-intl";
 import { ProviderSelect } from "@/components/config/ProviderSelect";
 import { useProviderDisplay } from "@/hooks/useProviderDisplay";
 import { ModelConfig, getProviderFromModel, formatModelForLiteLLM } from "@/store/chatAtoms";
@@ -12,6 +13,7 @@ interface ProviderAndModelSelectProps {
 
 export function ProviderAndModelSelect(props: ProviderAndModelSelectProps) {
   const { selectedModel, updateSelectedModelConfig } = props;
+  const t = useTranslations("Config");
   const [provider, setProvider] = React.useState(selectedModel.provider);
   React.useEffect(() => {
     setProvider(selectedModel.provider);
@@ -28,7 +30,7 @@ export function ProviderAndModelSelect(props: ProviderAndModelSelectProps) {
 
   return (
     <div>
-      <Label htmlFor="provider">Provider</Label>
+      <Label htmlFor="provider">{t("providerLabel", { default: "Provider" })}</Label>
       <ProviderSelect
         value={provider}
         onChange={handleProviderChange}

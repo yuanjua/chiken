@@ -2,6 +2,7 @@
 
 import { useAtom } from "jotai";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import {
   activeKnowledgeBaseAtom,
   activeKnowledgeBaseDocumentsAtom,
@@ -28,6 +29,7 @@ interface KnowledgeBaseDocumentsSectionProps {
 export function KnowledgeBaseDocumentsSection({
   setIsLoading,
 }: KnowledgeBaseDocumentsSectionProps) {
+  const t = useTranslations("KB.Documents");
   const [activeKnowledgeBase] = useAtom(activeKnowledgeBaseAtom);
   const [documents] = useAtom(activeKnowledgeBaseDocumentsAtom);
   const [activeKnowledgeBaseIds] = useAtom(selectedKnowledgeBaseIdsAtom);
@@ -56,9 +58,9 @@ export function KnowledgeBaseDocumentsSection({
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium">
-            Documents in {activeKnowledgeBase.name}
+            {t("title", { name: activeKnowledgeBase.name })}
           </h3>
-          <Badge variant="outline">{documents.length} docs</Badge>
+          <Badge variant="outline">{t("docsCount", { count: documents.length })}</Badge>
         </div>
         {/* Search removed */}
       </div>
@@ -67,9 +69,7 @@ export function KnowledgeBaseDocumentsSection({
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">
-              No documents uploaded yet
-            </p>
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -117,7 +117,7 @@ export function KnowledgeBaseDocumentsSection({
                         className="text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        {t("delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

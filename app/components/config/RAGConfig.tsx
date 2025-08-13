@@ -4,6 +4,7 @@ import { ProviderSelect } from "@/components/config/ProviderSelect";
 import { ModelSuggestDropdown } from "./ModelSuggestDropdown";
 import { ModelConfig } from "@/store/chatAtoms";
 import { useProviderSelection } from "@/hooks/useProviderSelection";
+import { useTranslations } from "next-intl";
 
 // RAGConfig Component - Optimized for LiteLLM Compatibility
 // - Properly handles embed_provider persistence separately from chat model provider
@@ -20,6 +21,7 @@ interface RAGConfigProps {
 
 export function RAGConfig(props: RAGConfigProps) {
   const { selectedModel, updateSelectedModelConfig, availableModels = [], onEmbeddingProviderChange, refreshTrigger } = props;
+  const t = useTranslations("RAG");
   // Use the hook for provider/model selection
   const {
     provider,
@@ -129,7 +131,7 @@ export function RAGConfig(props: RAGConfigProps) {
         <div className="lg:col-span-2 space-y-3">
           {/* Embedding Provider Selection */}
           <div>
-            <Label htmlFor="embeddingProvider">Embedding Provider</Label>
+            <Label htmlFor="embeddingProvider">{t("embeddingProvider")}</Label>
             <ProviderSelect
               value={provider}
               onChange={handleProviderChange}
@@ -138,7 +140,7 @@ export function RAGConfig(props: RAGConfigProps) {
           </div>
           {/* Embedding Model Input with Suggestions */}
           <div className="relative">
-            <Label htmlFor="embeddingModel">Embedding Model</Label>
+            <Label htmlFor="embeddingModel">{t("embeddingModel")}</Label>
             <ModelSuggestDropdown
               provider={provider}
               baseUrl={selectedModel.baseUrl}
@@ -153,7 +155,7 @@ export function RAGConfig(props: RAGConfigProps) {
                 setModelInput(fullModelName);
               }}
               fetchSuggestions={fetchSuggestions}
-              placeholder={`Type to search ${provider} models`}
+              placeholder={t("searchModelsPlaceholder", { provider })}
               renderCostInfo={renderCostInfo}
             />
           </div>
@@ -161,14 +163,10 @@ export function RAGConfig(props: RAGConfigProps) {
         {/* Right side - Description */}
         <div className="lg:col-span-2">
           <div className="text-sm p-3 bg-muted rounded-lg h-full flex flex-col justify-center">
-            <strong className="text-foreground">Embedding Model Setup</strong>
-            <p className="text-muted-foreground mt-1">
-              Choose an embedding model for RAG (Retrieval-Augmented Generation)
-              functionality. This model converts text into vector representations
-              for semantic search and document retrieval.
-            </p>
+            <strong className="text-foreground">{t("embeddingSetupTitle")}</strong>
+            <p className="text-muted-foreground mt-1">{t("embeddingSetupDesc")}</p>
             <div className="mt-2 text-xs text-muted-foreground">
-              <p className="">For example:</p>
+              <p className="">{t("examplesTitle")}</p>
               <p>
                 <strong>Ollama:</strong> nomic-embed-text, all-MiniLM-L6-v2
               </p>

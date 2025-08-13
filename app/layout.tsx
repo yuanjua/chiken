@@ -1,9 +1,4 @@
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { JotaiProvider } from "@/components/providers/JotaiProvider";
-
-import AppLayout from "@/components/layout/AppLayout";
 
 export const metadata = {
   title: "ChiKen",
@@ -17,14 +12,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className="font-sans h-full overflow-hidden">
-        <JotaiProvider>
-          <ThemeProvider>
-            <AppLayout>{children}</AppLayout>
-            <Toaster />
-          </ThemeProvider>
-        </JotaiProvider>
-      </body>
+      <body className="font-sans h-full overflow-hidden">{children}</body>
     </html>
   );
 }

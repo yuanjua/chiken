@@ -15,6 +15,7 @@ import {
 } from "../../store/uiAtoms";
 import { Button } from "@/components/ui/button";
 import { Plus, Database, X, Loader2, Lightbulb } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { KnowledgeBaseList } from "./KnowledgeBaseList";
 import { KnowledgeBaseQuerySection } from "./KnowledgeBaseQuerySection";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/api-client";
 
 export function KnowledgeBaseSidebar() {
+  const t = useTranslations("KB.Sidebar");
   const [knowledgeBases, setKnowledgeBases] = useAtom(knowledgeBasesAtom);
   const [activeKnowledgeBaseId, setActiveKnowledgeBaseId] = useAtom(
     activeKnowledgeBaseIdAtom,
@@ -201,7 +203,7 @@ export function KnowledgeBaseSidebar() {
           <X className="h-3 w-3 sidebar-icon" />
         </Button>
         <Lightbulb className="h-4 w-4" />
-        <h3 className="text-sm font-medium">Knowledge Bases</h3>
+        <h3 className="text-sm font-medium">{t("title")}</h3>
         {isLoading && <Loader2 className="h-3 w-3 animate-spin ml-auto" />}
       </div>
 
@@ -214,7 +216,7 @@ export function KnowledgeBaseSidebar() {
             disabled={isLoading}
           >
             <Plus className="h-4 w-4" />
-            <span className="text-xs">New Knowledge Base</span>
+            <span className="text-xs">{t("newKb")}</span>
           </Button>
         </KnowledgeBaseCreationDialog>
       </div>

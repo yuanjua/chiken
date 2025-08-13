@@ -8,6 +8,7 @@ import { updateSystemConfig } from "@/lib/api-client";
 import { Loader2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import * as secretStore from "@/lib/secret-store";
+import { useTranslations } from "next-intl";
 
 export function SaveConfigButton({
   activeProviders,
@@ -21,6 +22,7 @@ export function SaveConfigButton({
   const [selectedModel] = useAtom(selectedModelAtom);
   const { toast } = useToast();
   const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const t = useTranslations("Common");
 
   // Provider credentials are managed via Env Variables section; no per-provider writes here
 
@@ -55,16 +57,16 @@ export function SaveConfigButton({
 
 
       toast({
-        title: "✅ Success!",
-        description: "Configuration saved successfully and persisted",
+        title: "✅ " + t("success"),
+        description: t("configSavedPersisted"),
         className: "bg-green-50 border-green-200 text-green-800",
       });
     } catch (error) {
       console.error("SaveConfigButton: Save error:", error);
       toast({
         variant: "destructive",
-        title: "❌ Save Error",
-        description: `Failed to save configuration: ${error}`,
+        title: "❌ " + t("saveError"),
+        description: t("saveConfigFailed", { error: String(error) }),
       });
     } finally {
       setIsSavingConfig(false);
@@ -83,7 +85,7 @@ export function SaveConfigButton({
         ) : (
           <Save className="w-4 h-4 mr-2" />
         )}
-        {isSavingConfig ? "Saving..." : "Save Configuration"}
+        {isSavingConfig ? t("saving") : t("saveConfiguration")}
       </Button>
     </div>
   );

@@ -8,6 +8,7 @@ import MarkdownText from "./MarkdownBubble";
 import { UserIcon, BotIcon } from "lucide-react";
 import AiGenerating from "../ui/ai-generating";
 import React from "react";
+import { useTranslations } from "next-intl";
 
 interface MessageItemProps {
   message: Message;
@@ -20,6 +21,7 @@ function MessageItemComponent({
   isLoading,
   progressMessage = null,
 }: MessageItemProps) {
+  const t = useTranslations("Common");
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
 
@@ -80,7 +82,7 @@ function MessageItemComponent({
                 {/* Display sources if available */}
                 {message.annotations && message.annotations.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-border/50">
-                    <p className="text-xs font-medium mb-2">Sources:</p>
+                    <p className="text-xs font-medium mb-2">{t("sourcesLabel")}</p>
                     <div className="flex flex-wrap gap-1">
                       {message.annotations.map(
                         (annotation: any, index: number) => (

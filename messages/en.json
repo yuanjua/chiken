@@ -1,0 +1,292 @@
+{
+  "Common": {
+    "appName": "ChiKen",
+    "startConversation": "Start a conversation",
+    "creatingNewChat": "Creating new chat...",
+    "newChatTitle": "New Chat",
+    "botAlt": "Bot",
+    "emptyHint": "Ask anything or include documents for context-aware responses.",
+    "typeMessagePlaceholder": "Type your message...",
+    "askAboutDocs": "Ask about {count, plural, one {# document} other {# documents}}...",
+    "configSaved": "Configuration saved!",
+    "configError": "{error}",
+    "toggleChatSidebar": "Toggle Chat Sidebar",
+    "chatSession": "Chat Session",
+    "documentCount": "{count, plural, one {# document} other {# documents}}",
+    "settings": "Settings",
+    "toggleKnowledgeSidebar": "Toggle Knowledge Base Sidebar",
+    "selectKbFirst": "Please select at least one knowledge base first",
+    "selectDocuments": "Select Documents",
+    "selectDocsHint": "Click to select/deselect • {selected} selected • {total} docs",
+    "searchDocuments": "Search documents",
+    "loadingDocuments": "Loading documents...",
+    "noDocsInKb": "No documents found in this knowledge base",
+    "sourcesLabel": "Sources:",
+    "uploading": "Uploading...",
+    "processing": "Processing...",
+    "success": "Success",
+    "configSavedPersisted": "Configuration saved successfully and persisted",
+    "saveError": "Save Error",
+    "saveConfigFailed": "Failed to save configuration: {error}",
+    "saving": "Saving...",
+    "saveConfiguration": "Save Configuration"
+  }
+  ,
+  "Connection": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "testing": "Testing...",
+    "notTested": "Not tested"
+  },
+  "Settings": {
+    "title": "Settings",
+    "description": "Configure your AI chat experience and model parameters.",
+    "providerAndModel": "Provider & Model",
+    "modelParameters": "Model Parameters",
+    "temperature": "Temperature",
+    "temperatureHelp": "Controls randomness. Lower values are more deterministic; higher values are more creative.",
+    "contextSize": "Context Size",
+    "contextSizeHelp": "Maximum tokens in a conversation. Higher allows longer chats but uses more memory.",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "reportBug": "Report a bug"
+  }
+  ,
+  "Config": {
+    "chatModel": "Chat Model",
+    "refresh": "Refresh",
+    "searchModelsPlaceholder": "Type to search {provider} models",
+    "showingModelsFrom": "Showing models from: {provider} provider. Type to filter available models.",
+    "typeProviderPlaceholder": "Type provider name...",
+    "loadingProviders": "Loading providers..."
+  },
+  "RAG": {
+    "embeddingProvider": "Embedding Provider",
+    "embeddingModel": "Embedding Model",
+    "searchModelsPlaceholder": "Type to search {provider} models",
+    "embeddingSetupTitle": "Embedding Model Setup",
+    "embeddingSetupDesc": "Choose an embedding model for RAG. It converts text into vectors for semantic search and retrieval.",
+    "examplesTitle": "For example:"
+  },
+  "PDF": {
+    "title": "PDF Parser Configuration",
+    "parserType": "Parser Type",
+    "selectParserType": "Select PDF parser type",
+    "kreuzbergLocal": "Kreuzberg (Local)",
+    "parserServer": "Parser Server",
+    "serverUrl": "Parser Server URL",
+    "parserServerDesc": "Uses AI models for better layout-aware extraction, formulas, tables, and OCR. Requires a running server and more time.",
+    "kreuzberg": "Kreuzberg Parser",
+    "kreuzbergDesc": "Local extraction via Kreuzberg with complex layout and table support. No OCR; limited LaTeX support."
+  },
+  "RAGPanel": {
+    "documentsCount": "{count, plural, one {# document} other {# documents}}",
+    "documentsHeader": "Documents ({count})",
+    "selectAll": "Select All",
+    "clear": "Clear",
+    "selectedForContext": "{count} selected for context",
+    "emptyKb": "No documents in this knowledge base",
+    "uploadToStart": "Upload documents to get started",
+    "chunksCount": "{count} chunks"
+  },
+  "Upload": {
+    "successTitle": "Upload Successful",
+    "successDesc": "{filename} uploaded successfully",
+    "failedTitle": "Upload Failed",
+    "dropHere": "Drop files here...",
+    "dropOrClick": "Drop files here or click to browse",
+    "supportsPdf": "Supports PDF (max 100MB)",
+    "uploadingTo": "Uploading to:",
+    "unknownKb": "Unknown KB",
+    "uploadedDocumentsReserved": "uploaded-documents (reserved)",
+    "processing": "Processing files...",
+    "duplicate": "Duplicate",
+    "generatingHash": "Generating hash and checking duplicates...",
+    "alreadyExists": "File already exists, using existing version"
+  },
+  "KB": {
+    "Sidebar": {
+      "title": "Knowledge Bases",
+      "newKb": "New Knowledge Base"
+    },
+    "List": {
+      "activeTitle": "Active Knowledge Bases",
+      "empty": "No knowledge bases found. Create one to get started.",
+      "clearHint": "Clear {count} knowledge base{count, plural, one {} other {s}} to just chat 😊",
+      "clear": "Clear"
+    },
+    "Documents": {
+      "title": "Documents in {name}",
+      "docsCount": "{count} docs",
+      "empty": "No documents uploaded yet",
+      "delete": "Delete"
+    },
+    "Query": {
+      "title": "Query Knowledge Bases",
+      "totalDocs": "total docs",
+      "searchPlaceholder": "Semantic search...",
+      "query": "Query",
+      "results": "Search Results ({count})",
+      "exportAsPrompt": "Export as Prompt",
+      "unknownKb": "Unknown KB",
+      "page": "Page",
+      "view": "View →",
+      "document": "Document",
+      "knowledgeBase": "Knowledge Base",
+      "unknown": "Unknown",
+      "relevanceScore": "Relevance Score:",
+      "close": "Close"
+    },
+    "Create": {
+      "error": "Error",
+      "enterName": "Please enter a knowledge base name",
+      "selectOneCollection": "Please select at least one collection",
+      "success": "Success",
+      "created": "Knowledge base \"{name}\" created successfully",
+      "warning": "Warning",
+      "noItems": "No items found in the selected Zotero collections.",
+      "createFailed": "Failed to create knowledge base",
+      "titleNew": "Create New Knowledge Base",
+      "titleFromCollections": "Create Knowledge Base from Collections",
+      "descNew": "Create a new empty knowledge base. You can add documents to it later.",
+      "descFromCollections": "Add documents from selected Zotero collections to a new knowledge base.",
+      "nameLabel": "Knowledge Base Name",
+      "namePlaceholder": "Enter knowledge base name...",
+      "processingParams": "Processing Parameters",
+      "hideAdvanced": "Hide Advanced",
+      "showAdvanced": "Show Advanced",
+      "chunkSize": "Chunk Size",
+      "chunkSizeHelp": "Size of text chunks (100-4000 characters)",
+      "chunkOverlap": "Chunk Overlap",
+      "chunkOverlapHelp": "Overlap between chunks (0-1000 characters)",
+      "enableRefFiltering": "Enable Reference Filtering",
+      "refFilteringBadge": "(In development, stay tuned for updates.)",
+      "refFilteringHelp": "Filter out references and citations from document content using Naive Bayes, trained on narrow domain of data. Plan to broaden and refine its dataset.",
+      "selectedCollections": "Selected Collections",
+      "collectionsCount": "{count, plural, one {# collection} other {# collections}}",
+      "items": "{count, plural, one {item} other {items}}",
+      "noCollectionsSelected": "No collections selected. Please select collections from the sidebar.",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "createKb": "Create Knowledge Base"
+    },
+    "Manage": {
+      "title": "Manage \"{name}\"",
+      "description": "Basic information and file upload for this knowledge base.",
+      "descriptionLabel": "Description:",
+      "documentsLabel": "Documents:",
+      "createdLabel": "Created:",
+      "addFiles": "Add files"
+    }
+  }
+  ,
+  "UploadZone": {
+    "successTitle": "Upload Successful",
+    "successDesc": "{filename} uploaded successfully",
+    "failedTitle": "Upload Failed",
+    "tooLarge": "File {name} is too large. Maximum size is {size}MB.",
+    "tooLargeTitle": "File Too Large",
+    "unsupportedTypeDesc": "File type {type} is not supported.",
+    "unsupportedTypeTitle": "Unsupported File Type",
+    "dropHere": "Drop files here...",
+    "dragOrClick": "Drag files here or click to select",
+    "supports": "Supports images, PDFs, text files (max 10MB each)",
+    "processingMentions": "Processing for mention documents...",
+    "uploadingToDefaultKb": "Uploading to uploaded-documents KB...",
+    "uploadComplete": "Upload complete - Ready for mentions",
+    "duplicate": "Duplicate file - using existing"
+  },
+  "Zotero": {
+    "loading": "Loading Zotero collections...",
+    "errorPrefix": "Error:",
+    "empty": "No Zotero collections found."
+  },
+  "EnvVars": {
+    "title": "Environment Variables",
+    "recommended": "Recommended variables",
+    "noRecommendations": "No recommendations available.",
+    "descOpenAI": "OpenAI API key",
+    "descAnthropic": "Anthropic API key",
+    "descAzure": "Azure OpenAI API key",
+    "descReplicate": "Replicate API key",
+    "descCohere": "Cohere API key",
+    "descOpenRouter": "OpenRouter API key",
+    "descTogether": "Together AI API key",
+    "descHF": "Hugging Face token",
+    "descOpenAIBase": "Custom OpenAI-compatible base URL",
+    "descOllamaBase": "Ollama server base URL (default http://localhost:11434)",
+    "descAcademicMailto": "Enter email to increase rate limit to academic search",
+    "descS2": "Semantic Scholar API key to increase rate limit",
+    "descNCBI": "NCBI/PubMed API key to increase rate limit"
+  },
+  "ConfigButtons": {
+    "saving": "Saving...",
+    "testing": "Testing...",
+    "saved": "Saved!",
+    "testSuccessful": "Test Successful!",
+    "error": "Error",
+    "idle": "Idle",
+    "test": "Test",
+    "save": "Save"
+  }
+  ,
+  "MCP": {
+    "Config": {
+      "error": "Error",
+      "loadFailed": "Failed to load MCP configuration",
+      "success": "Success",
+      "savedAndRestarted": "MCP configuration saved and server restarted successfully",
+      "saveRestartFailed": "Failed to save configuration and restart MCP server",
+      "copied": "Copied",
+      "copiedDesc": "MCP configuration copied to clipboard",
+      "copyFailed": "Failed to copy configuration to clipboard",
+      "title": "MCP Server Configuration",
+      "loading": "Loading configuration...",
+      "serverPrefix": "MCP Server:",
+      "running": "Running",
+      "stopped": "Stopped",
+      "serverSettings": "Server Settings",
+      "transportType": "Transport Type",
+      "selectTransport": "Select transport type",
+      "port": "Port",
+      "clientConfig": "MCP Client Configuration",
+      "copyJson": "Copy JSON",
+      "clientConfigDesc": "Copy this configuration for use in MCP clients (Claude Desktop, IDEs, etc.)",
+      "processing": "Processing...",
+      "saveAndRestart": "Save and Restart MCP Server"
+    },
+    "JSON": {
+      "title": "MCP Configuration",
+      "loading": "Loading...",
+      "generating": "Generating configuration examples...",
+      "error": "Error",
+      "failed": "Failed to generate MCP configuration examples.",
+      "desc": "Copy and use these configurations to connect MCP clients to the knowledge base server.",
+      "sidecarBinary": "Tauri Sidecar Binary:",
+      "copied": "Copied!",
+      "copy": "Copy",
+      "stdioDesc": "Direct process communication via stdin/stdout. Recommended for desktop applications.",
+      "httpDesc": "HTTP-based communication. Good for web-based clients and debugging.",
+      "sseDesc": "SSE-based communication. Suitable for real-time web applications.",
+      "recommended": "Recommended",
+      "learnMore": "Learn more about MCP configuration"
+    }
+  },
+  "Sessions": {
+    "newChat": "New Chat",
+    "newChatTitle": "New Chat",
+    "loading": "Loading sessions...",
+    "empty": "No chat sessions yet"
+  },
+  "Sidebar": {
+    "chatSessions": "Chat Sessions",
+    "zoteroCollections": "Zotero Collections",
+    "refreshCollections": "Refresh Collections",
+    "createKbFromCollections": "Create Knowledge Base from Collections"
+  }
+  
+}
+

@@ -14,6 +14,7 @@ import ZoteroCollections from "../zotero/ZoteroCollections";
 import ChatSessions from "./ChatSessions";
 import { KnowledgeBaseCreationDialog } from "../knowledge/KnowledgeBaseCreationDialog";
 import type { TreeNode } from "@/store/uiAtoms";
+import { useTranslations } from "next-intl";
 
 function SelectedItemsCount() {
   const [selectedKeys] = useAtom(zoteroSelectedKeysAtom);
@@ -47,6 +48,7 @@ function SelectedItemsCount() {
 }
 
 export default function Sidebar() {
+  const t = useTranslations("Sidebar");
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(isSidebarOpenAtom);
   const [, setSelectedKeys] = useAtom(zoteroSelectedKeysAtom);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -63,7 +65,7 @@ export default function Sidebar() {
         <div className="px-4 py-2 flex-shrink-0">
           <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
             <MessagesSquare className="h-4 w-4" />
-            Chat Sessions
+            {t("chatSessions")}
           </h3>
         </div>
 
@@ -80,14 +82,14 @@ export default function Sidebar() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <SquareLibrary className="h-4 w-4" />
-              Zotero Collections
+              {t("zoteroCollections")}
             </h3>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRefreshZotero}
               className="h-6 w-6 p-0 hover:bg-muted/50"
-              title="Refresh Collections"
+              title={t("refreshCollections")}
             >
               <RefreshCw className="h-3 w-3" />
             </Button>
@@ -109,7 +111,7 @@ export default function Sidebar() {
             <Button size="sm" className="w-full justify-start gap-2">
               <Binary className="h-4 w-4 text-gray-500" />
               <span className="text-xs text-muted-foreground truncate">
-                Create Knowledge Base from Collections
+                {t("createKbFromCollections")}
               </span>
             </Button>
           </KnowledgeBaseCreationDialog>

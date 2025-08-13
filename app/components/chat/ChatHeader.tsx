@@ -16,6 +16,7 @@ import {
 } from "@/store/uiAtoms";
 import { selectedRAGDocumentsAtom } from "@/store/ragAtoms";
 import { chatSessionsMapAtom } from "@/store/sessionAtoms";
+import { useTranslations } from "next-intl";
 
 interface ChatHeaderProps {
   sessionId: string;
@@ -23,6 +24,7 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
+  const t = useTranslations("Common");
   const [selectedRAGDocs] = useAtom(selectedRAGDocumentsAtom);
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(isSidebarOpenAtom);
   const [isKnowledgeBaseSidebarOpen, setIsKnowledgeBaseSidebarOpen] = useAtom(
@@ -51,7 +53,7 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
           className={`h-6 w-6 p-0 sidebar-button ${
             isSidebarOpen ? "bg-muted/30" : ""
           }`}
-          title="Toggle Chat Sidebar"
+          title={t("toggleChatSidebar")}
         >
           <PanelLeft
             className={`h-3 w-3 sidebar-icon ${
@@ -64,7 +66,7 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
         <div className="flex items-center gap-2">
           {/* <MessageSquareText className="h-4 w-4 text-primary" /> */}
           <h2 className="font-semibold">
-            {chatSessionsMap[sessionId]?.title || "Chat Session"}
+            {chatSessionsMap[sessionId]?.title || t("chatSession")}
           </h2>
         </div>
 
@@ -72,8 +74,7 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
         {selectedRAGDocs.length > 0 && (
           <Badge variant="secondary" className="flex items-center gap-1">
             <FileText className="h-3 w-3" />
-            {selectedRAGDocs.length} document
-            {selectedRAGDocs.length !== 1 ? "s" : ""}
+            {t("documentCount", { count: selectedRAGDocs.length })}
           </Badge>
         )}
       </div>
@@ -93,7 +94,7 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
             }
           }}
           className="h-6 w-6 p-0"
-          title="Settings"
+          title={t("settings")}
         >
           <Settings className="h-3 w-3" />
         </Button>
@@ -108,7 +109,7 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
           className={`h-6 w-6 p-0 sidebar-button ${
             isKnowledgeBaseSidebarOpen ? "bg-muted/30" : ""
           }`}
-          title="Toggle Knowledge Base Sidebar"
+          title={t("toggleKnowledgeSidebar")}
         >
           <PanelRight
             className={`h-3 w-3 sidebar-icon ${

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, AlertCircle, CheckCircle, Hash } from "lucide-react";
 import { FILE_SIZE_LIMITS } from "@/lib/file-utils";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "next-intl";
 
 interface KnowledgeBaseInfo {
   id: string;
@@ -35,19 +36,20 @@ export function FileUpload({
   const [knowledgeBases] = useAtom(knowledgeBasesAtom);
   const [activeKbId] = useAtom(activeKnowledgeBaseIdAtom);
   const { toast } = useToast();
+  const t = useTranslations("Upload");
 
   const { uploadFiles, activeUploads } = useUnifiedUpload({
     onUploadComplete: (fileId: string, filename: string) => {
       console.log("FileUpload: onUploadComplete called for:", fileId, filename);
       toast({
-        title: "Upload Successful",
-        description: `${filename} uploaded successfully`,
+        title: t("successTitle"),
+        description: t("successDesc", { filename }),
       });
     },
     onUploadError: (fileId: string, error: string) => {
       console.log("FileUpload: onUploadError called for:", fileId, error);
       toast({
-        title: "Upload Failed",
+        title: t("failedTitle"),
         description: error,
         variant: "destructive",
       });
@@ -90,25 +92,25 @@ export function FileUpload({
         <input {...getInputProps()} />
         <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
         {isDragActive ? (
-          <p className="text-sm text-primary">Drop files here...</p>
+          <p className="text-sm text-primary">{t("dropHere")}</p>
         ) : (
           <div>
             <p className="text-sm font-medium mb-1">
-              Drop files here or click to browse
+              {t("dropOrClick")}
             </p>
             {!hideSupportMessage && (
               <p className="text-xs text-muted-foreground">
-                Supports PDF (max 100MB)
+                {t("supportsPdf")}
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              📁 Uploading to:{" "}
+              📁 {t("uploadingTo")} {" "}
               {targetKnowledgeBase
                 ? targetKnowledgeBase.name
                 : activeKbId && activeKbId !== "uploaded-documents"
                   ? knowledgeBases.find((kb) => kb.id === activeKbId)?.name ||
-                    "Unknown KB"
-                  : "uploaded-documents (reserved)"}
+                    t("unknownKb")
+                  : t("uploadedDocumentsReserved")}
             </p>
           </div>
         )}
@@ -117,7 +119,7 @@ export function FileUpload({
       {/* Upload Progress */}
       {Object.keys(activeUploads).length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium">Processing files...</p>
+          <p className="text-sm font-medium">{t("processing")}</p>
           {Object.entries(activeUploads).map(([uploadId, upload]) => (
             <div key={uploadId} className="space-y-1">
               <div className="flex items-center gap-2 text-sm">
@@ -134,13 +136,13 @@ export function FileUpload({
                 <span className="truncate">{upload.file.name}</span>
                 {upload.result?.message?.includes("duplicate") && (
                   <Badge variant="secondary" className="text-xs">
-                    Duplicate
+                    {t("duplicate")}
                   </Badge>
                 )}
               </div>
               {upload.status === "processing" && (
                 <p className="text-xs text-muted-foreground">
-                  Generating hash and checking duplicates...
+                  {t("generatingHash")}
                 </p>
               )}
               {upload.status === "uploading" && (
@@ -148,7 +150,7 @@ export function FileUpload({
               )}
               {upload.status === "completed" && upload.result?.message?.includes("duplicate") && (
                 <p className="text-xs text-green-600">
-                  File already exists, using existing version
+                  {t("alreadyExists")}
                 </p>
               )}
               {upload.status === "error" && (
