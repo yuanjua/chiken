@@ -245,7 +245,7 @@
   },
   "MCP": {
     "Section": {
-      "title": "知识 MCP 服务",
+      "title": "知识库 MCP 服务器",
       "desc": "向偏好的 LLM 客户端提供知识库服务。"
     },
     "Config": {
@@ -268,7 +268,7 @@
       "port": "端口",
       "clientConfig": "MCP 客户端配置",
       "copyJson": "复制 JSON",
-      "clientConfigDesc": "复制此配置以在 MCP 客户端（如 Claude Desktop、IDE 等）中使用",
+      "clientConfigDesc": "复制此配置以在 MCP 客户端（如 Claude Desktop、VSCode 等）中使用",
       "processing": "正在处理...",
       "saveAndRestart": "保存并重启 MCP 服务"
     },

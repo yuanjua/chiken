@@ -260,7 +260,7 @@
       "port": "Port",
       "clientConfig": "MCP Client Configuration",
       "copyJson": "Copy JSON",
-      "clientConfigDesc": "Copy this configuration for use in MCP clients (Claude Desktop, IDEs, etc.)",
+      "clientConfigDesc": "Copy this configuration for use in MCP clients (Claude Desktop, VSCode, etc.)",
       "processing": "Processing...",
       "saveAndRestart": "Save and Restart MCP Server"
     },

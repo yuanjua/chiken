@@ -2,12 +2,19 @@
 
 import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
+  import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
   PanelLeft,
   PanelRight,
   FileText,
   Settings,
+  Languages,
 } from "lucide-react";
 import {
   isSidebarOpenAtom,
@@ -17,6 +24,7 @@ import {
 import { selectedRAGDocumentsAtom } from "@/store/ragAtoms";
 import { chatSessionsMapAtom } from "@/store/sessionAtoms";
 import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "next/navigation";
 
 interface ChatHeaderProps {
   sessionId: string;
@@ -25,6 +33,8 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
   const t = useTranslations("Common");
+  const router = useRouter();
+  const pathname = usePathname();
   const [selectedRAGDocs] = useAtom(selectedRAGDocumentsAtom);
   const [isSidebarOpen, setIsSidebarOpen] = useAtom(isSidebarOpenAtom);
   const [isKnowledgeBaseSidebarOpen, setIsKnowledgeBaseSidebarOpen] = useAtom(
@@ -40,6 +50,17 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
       minute: "2-digit",
       hour12: false,
     });
+  };
+
+  const changeLocale = (locale: "en" | "zh") => {
+    const segments = pathname.split("/");
+    const supported = new Set(["en", "zh"]);
+    if (segments.length > 1 && supported.has(segments[1])) {
+      segments[1] = locale;
+      router.push(segments.join("/") || `/${locale}`);
+    } else {
+      router.push(`/${locale}`);
+    }
   };
 
   return (
@@ -81,6 +102,24 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
 
       <div className="flex items-center gap-3">
         {/* Chat info */}
+
+        {/* Language Selector */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              title="Language"
+            >
+              <Languages className="h-3 w-3" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-background dark:bg-gray-800">
+            <DropdownMenuItem onClick={() => changeLocale("en")}>English</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => changeLocale("zh")}>中文</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Settings Button */}
         <Button
