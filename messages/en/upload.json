@@ -1,0 +1,15 @@
+{
+  "successTitle": "Upload Successful",
+  "successDesc": "{filename} uploaded successfully",
+  "failedTitle": "Upload Failed",
+  "dropHere": "Drop files here...",
+  "dropOrClick": "Drop files here or click to browse",
+  "supportsPdf": "Supports PDF (max 100MB)",
+  "uploadingTo": "Uploading to:",
+  "unknownKb": "Unknown KB",
+  "uploadedDocumentsReserved": "uploaded-documents (reserved)",
+  "processing": "Processing files...",
+  "duplicate": "Duplicate",
+  "generatingHash": "Generating hash and checking duplicates...",
+  "alreadyExists": "File already exists, using existing version"
+}

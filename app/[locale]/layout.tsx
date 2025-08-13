@@ -26,7 +26,9 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const messages = (await import(`../../messages/${locale}.json`)).default;
+  const messages = (
+    await import(`../../messages/${locale}/index`)
+  ).default as Record<string, any>;
   const isRtl = ["ar", "he", "fa", "ur"].includes(locale);
 
   return (

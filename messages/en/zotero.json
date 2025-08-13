@@ -1,0 +1,7 @@
+{
+  "loading": "Loading Zotero collections...",
+  "errorPrefix": "Error:",
+  "empty": "No Zotero collections found.",
+  "connectHint": "Make sure Zotero is connected",
+  "collectionsHeader": "Zotero Collections ({count})"
+}

@@ -1,0 +1,8 @@
+{
+  "chatModel": "聊天模型",
+  "refresh": "刷新",
+  "searchModelsPlaceholder": "输入以搜索 {provider} 模型",
+  "showingModelsFrom": "正在显示来自 {provider} 的模型。输入以筛选。",
+  "typeProviderPlaceholder": "输入服务商名称...",
+  "loadingProviders": "正在加载服务商..."
+}

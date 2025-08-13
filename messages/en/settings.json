@@ -1,0 +1,16 @@
+{
+  "title": "Settings",
+  "description": "Configure your AI chat experience and model parameters.",
+  "providerAndModel": "Provider & Model",
+  "modelParameters": "Model Parameters",
+  "temperature": "Temperature",
+  "temperatureHelp": "Controls randomness. Lower values are more deterministic; higher values are more creative.",
+  "contextSize": "Context Size",
+  "contextSizeHelp": "Maximum tokens in a conversation. Higher allows longer chats but uses more memory.",
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
+  "reportBug": "Report a bug"
+}

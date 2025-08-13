@@ -1,0 +1,8 @@
+{
+  "embeddingProvider": "向量嵌入服务商",
+  "embeddingModel": "向量嵌入模型",
+  "searchModelsPlaceholder": "输入以搜索 {provider} 模型",
+  "embeddingSetupTitle": "嵌入模型设置",
+  "embeddingSetupDesc": "为 RAG 选择一个嵌入模型。它将文本转换为向量以用于语义检索。",
+  "examplesTitle": "例如："
+}

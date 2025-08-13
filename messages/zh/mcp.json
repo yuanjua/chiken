@@ -1,0 +1,46 @@
+{
+  "Section": {
+    "title": "知识库 MCP 服务器",
+    "desc": "向偏好的 LLM 客户端提供知识库服务。"
+  },
+  "Config": {
+    "error": "错误",
+    "loadFailed": "加载 MCP 配置失败",
+    "success": "成功",
+    "savedAndRestarted": "MCP 配置已保存并成功重启服务",
+    "saveRestartFailed": "保存配置并重启 MCP 服务失败",
+    "copied": "已复制",
+    "copiedDesc": "MCP 配置已复制到剪贴板",
+    "copyFailed": "复制 MCP 配置失败",
+    "title": "MCP 服务配置",
+    "loading": "正在加载配置...",
+    "serverPrefix": "MCP 服务：",
+    "running": "运行中",
+    "stopped": "已停止",
+    "serverSettings": "服务设置",
+    "transportType": "传输方式",
+    "selectTransport": "选择传输方式",
+    "port": "端口",
+    "clientConfig": "MCP 客户端配置",
+    "copyJson": "复制 JSON",
+    "clientConfigDesc": "复制此配置以在 MCP 客户端（如 Claude Desktop、VSCode 等）中使用",
+    "processing": "正在处理...",
+    "saveAndRestart": "保存并重启 MCP 服务"
+  },
+  "JSON": {
+    "title": "MCP 配置",
+    "loading": "加载中...",
+    "generating": "正在生成配置示例...",
+    "error": "错误",
+    "failed": "生成 MCP 配置示例失败。",
+    "desc": "复制并使用这些配置以将 MCP 客户端连接到知识库服务。",
+    "sidecarBinary": "Tauri 辅助进程二进制：",
+    "copied": "已复制！",
+    "copy": "复制",
+    "stdioDesc": "通过标准输入输出进行进程间通信，适合桌面应用，推荐使用。",
+    "httpDesc": "基于 HTTP 的通信，适合 Web 客户端和调试。",
+    "sseDesc": "基于 SSE 的通信，适合实时 Web 应用。",
+    "recommended": "推荐",
+    "learnMore": "了解更多 MCP 配置"
+  }
+}

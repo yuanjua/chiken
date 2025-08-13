@@ -6,7 +6,10 @@ export default getRequestConfig(async ({locale}) => {
     ? (locale as 'en' | 'zh')
     : 'en';
 
-  const messages = (await import(`../messages/${resolved}.json`)).default;
+  const messages =
+    resolved === 'en'
+      ? (await import('../messages/en/index')).default
+      : (await import('../messages/zh/index')).default;
   return {messages, locale: resolved};
 });
 

@@ -1,0 +1,7 @@
+{
+  "chatSessions": "Chat Sessions",
+  "zoteroCollections": "Zotero Collections",
+  "refreshCollections": "Refresh Collections",
+  "createKbFromCollections": "Create Knowledge Base from Collections",
+  "itemsSelected": "{count, plural, one {# item selected} other {# items selected}}"
+}

@@ -1,0 +1,8 @@
+{
+  "embeddingProvider": "Embedding Provider",
+  "embeddingModel": "Embedding Model",
+  "searchModelsPlaceholder": "Type to search {provider} models",
+  "embeddingSetupTitle": "Embedding Model Setup",
+  "embeddingSetupDesc": "Choose an embedding model for RAG. It converts text into vectors for semantic search and retrieval.",
+  "examplesTitle": "For example:"
+}

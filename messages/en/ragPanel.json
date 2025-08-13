@@ -1,0 +1,10 @@
+{
+  "documentsCount": "{count, plural, one {# document} other {# documents}}",
+  "documentsHeader": "Documents ({count})",
+  "selectAll": "Select All",
+  "clear": "Clear",
+  "selectedForContext": "{count} selected for context",
+  "emptyKb": "No documents in this knowledge base",
+  "uploadToStart": "Upload documents to get started",
+  "chunksCount": "{count} chunks"
+}

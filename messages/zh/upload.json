@@ -1,0 +1,15 @@
+{
+  "successTitle": "上传成功",
+  "successDesc": "{filename} 上传成功",
+  "failedTitle": "上传失败",
+  "dropHere": "将文件拖拽到此处...",
+  "dropOrClick": "拖拽文件到此处或点击选择",
+  "supportsPdf": "支持 PDF（最大 100MB）",
+  "uploadingTo": "上传目标：",
+  "unknownKb": "未知知识库",
+  "uploadedDocumentsReserved": "uploaded-documents（保留）",
+  "processing": "正在处理文件...",
+  "duplicate": "重复",
+  "generatingHash": "正在生成哈希并检查重复...",
+  "alreadyExists": "文件已存在，使用已有版本"
+}

@@ -1,0 +1,11 @@
+{
+  "title": "PDF 解析配置",
+  "parserType": "解析类型",
+  "selectParserType": "选择 PDF 解析类型",
+  "kreuzbergLocal": "Kreuzberg（本地）",
+  "parserServer": "解析服务器",
+  "serverUrl": "解析服务器地址",
+  "parserServerDesc": "使用 AI 模型进行更好的版面感知抽取、公式、表格和 OCR。需要运行中的服务，耗时更长。",
+  "kreuzberg": "Kreuzberg 解析器",
+  "kreuzbergDesc": "使用 Kreuzberg 在本地抽取，支持复杂版面和表格。无 OCR；LaTeX 支持有限。"
+}

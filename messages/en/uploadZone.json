@@ -1,0 +1,16 @@
+{
+  "successTitle": "Upload Successful",
+  "successDesc": "{filename} uploaded successfully",
+  "failedTitle": "Upload Failed",
+  "tooLarge": "File {name} is too large. Maximum size is {size}MB.",
+  "tooLargeTitle": "File Too Large",
+  "unsupportedTypeDesc": "File type {type} is not supported.",
+  "unsupportedTypeTitle": "Unsupported File Type",
+  "dropHere": "Drop files here...",
+  "dragOrClick": "Drag files here or click to select",
+  "supports": "Supports images, PDFs, text files (max 10MB each)",
+  "processingMentions": "Processing for mention documents...",
+  "uploadingToDefaultKb": "Uploading to uploaded-documents KB...",
+  "uploadComplete": "Upload complete - Ready for mentions",
+  "duplicate": "Duplicate file - using existing"
+}
