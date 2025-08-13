@@ -50,17 +50,22 @@ The JSON may vary for different clients, *e.g.* `streamableHttp` vs `http` vs `s
 Now you can leave ChiKen running in the background, and use your favorite LLM client to connect to the MCP server. This example uses VS Code Copilot to call our built-in MCP tools.
 
 <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
-    <img src="assets/mcp-example.gif" alt="MCP Example" style="width: 69%;">
+    <img src="assets/mcp-example.gif" alt="VSCODE MCP Example" style="width: 69%;">
 </div>
 
 The local Chat agent is not optimized for calling tools yet. It is fixed to call once `search_documents` each turn if any knowledge base is active. This is because local models are not good at tool calling, and we don't want you to call paid api in here yet (not tested nor optimized for token usage).
 
 ### 4. Chat with Local LLMs
 
-There are some advanced models that support long context windows, e.g. gemma3, which is important for literature understanding. In the setting page, set larger context size as large as your computer can handle.
+There are some advanced models that support **long context windows**, e.g. gemma3, qwen3, which is important for literature understanding. In the setting page, set larger context size as large as your computer can handle.
 
+<div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
+    <img src="assets/example-mention-doc.gif" alt="MCP Example" style="width: 69%;">
+</div>
 
-### 5. Stay Updated
+### 5. Stay tuned
 
-More agents are planned to be added soon, for example, (web) literature review and deep research agents. For now, Happy Researching!
+More agents are planned to be added soon, for example, (web) literature review and deep research agents. 
+
+Happy Researching!
 
