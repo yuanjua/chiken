@@ -33,7 +33,7 @@ jobs:
       - name: Install Python dependencies with uv
         run: |
           pip install uv
-          uv sync --system --all
+          uv sync --all
 
       - name: Install pnpm and dependencies
         run: |
