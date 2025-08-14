@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python dependencies with uv
+        run: |
+          pip install uv
+          uv pip install --system --group dev
+
+      - name: Install pnpm and dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+          pnpm install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type Check
+        run: pnpm tsc --noEmit
+        
+      - name: Build Python sidecar
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pnpm build:sidecar-linux
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            pnpm build:sidecar-macos
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            pnpm build:sidecar-winos
+          fi
+
+      - name: Build Tauri app
+        run: pnpm tauri build
+
+      - name: Test
+        run: pnpm test

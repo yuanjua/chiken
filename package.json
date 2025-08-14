@@ -14,7 +14,8 @@
     "tauri": "tauri",
     "export": "next export",
     "start": "next start",
-    "lint": "next lint"
+  "lint": "next lint",
+  "test": "echo \"No tests yet\""
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
