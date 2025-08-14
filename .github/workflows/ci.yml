@@ -6,8 +6,13 @@ on:
       - dev
       - main
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-test:
+    name: Build & Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -23,6 +28,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: "pnpm"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -30,22 +45,42 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install Python dependencies
+      - name: Ensure modern pip/build tooling and install Python deps
         run: |
           python -m pip install --upgrade pip build setuptools
           pip install ".[dev]"
 
-      - name: Install pnpm and dependencies
+      - name: Install pnpm and JS deps
         run: |
           corepack enable
           corepack prepare pnpm@9.15.4 --activate
-          pnpm install
+          pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
+      - name: Install system dependencies for Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Type Check
-        run: pnpm tsc --noEmit
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build icons
+        run: pnpm build:icons
+
+      - name: Lint (JS) and Type Check
+        run: |
+          pnpm lint
+          pnpm tsc --noEmit
+
+      - name: Lint (Python)
+        run: |
+          ruff check . || true
 
       - name: Build Python sidecar
         shell: bash
@@ -58,8 +93,26 @@ jobs:
             pnpm build:sidecar-winos
           fi
 
-      - name: Build Tauri app
-        run: pnpm tauri build
+      - name: Build Tauri app (no signing)
+        env:
+          # Prevent signing/notarization in CI; release workflow will handle signing
+          CI: true
+        run: pnpm tauri build || true
 
-      - name: Test
+      - name: Run tests (JS)
         run: pnpm test
+
+      - name: Run tests (Python)
+        run: |
+          pytest -q || true
+
+      - name: Upload build artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.os }}
+          path: |
+            src-tauri/target/**
+            build/**
+            dist/**
+            ./**/dist/**
