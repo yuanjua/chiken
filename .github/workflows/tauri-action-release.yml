@@ -47,7 +47,7 @@ jobs:
       - name: Install Python dependencies with uv
         run: |
           pip install uv
-          uv sync --all
+          uv sync --all-groups
 
       - name: Install pnpm and dependencies
         run: |
