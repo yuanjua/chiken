@@ -33,7 +33,7 @@ jobs:
       - name: Install Python dependencies with uv
         run: |
           pip install uv
-          uv pip install --system --group dev
+          uv sync --system --all
 
       - name: Install pnpm and dependencies
         run: |
@@ -46,7 +46,7 @@ jobs:
 
       - name: Type Check
         run: pnpm tsc --noEmit
-        
+
       - name: Build Python sidecar
         shell: bash
         run: |
