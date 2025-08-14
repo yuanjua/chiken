@@ -65,7 +65,7 @@ ChiKen is designed to complete the journey Zotero begins: the mastery of informa
 
 The code is licensed under the [MIT License](LICENSE).
 
-The ChiKen logo is licensed under [CC BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/).
+The ChiKen logo is licensed under [CC BY 4.0](./LICENSE-LOGO).
 
 ## Disclaimer
 

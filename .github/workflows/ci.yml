@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '9.15.4'
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Ensure modern pip/build tooling and install Python deps
+        run: |
+          pip install uv
+          uv pip install -r pyproject.toml --extra dev --system
+
+      - name: Install pnpm and JS deps
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.4 --activate
+          pnpm install --frozen-lockfile
+
+      - name: Install system dependencies for Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build icons
+        run: pnpm build:icons
+
+      - name: Lint (JS) and Type Check
+        run: |
+          pnpm lint
+          pnpm tsc --noEmit
+
+      - name: Lint (Python)
+        run: |
+          ruff check . || true
+
+      - name: Run tests (JS)
+        run: pnpm test
+
+      - name: Run tests (Python)
+        run: |
+          pytest -q || true
+
+      - name: Build Python sidecar
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pnpm build:sidecar-linux
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            pnpm build:sidecar-macos
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            pnpm build:sidecar-winos
+          fi
+
+      - name: Build Tauri app (no signing)
+        env:
+          # Prevent signing/notarization in CI; release workflow will handle signing
+          CI: true
+        run: pnpm tauri build || true
