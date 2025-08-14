@@ -33,7 +33,7 @@ dependencies = [
     "tokenizers>=0.21.1",
     "uvicorn>=0.34.3",
 ]
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "ruff>=0.12.8",
     "pytest>=8.0.0",

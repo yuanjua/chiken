@@ -30,10 +30,10 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install Python dependencies with uv
+      - name: Install Python dependencies
         run: |
-          pip install uv
-          uv sync --all-groups
+          python -m pip install --upgrade pip build setuptools
+          pip install ".[dev]"
 
       - name: Install pnpm and dependencies
         run: |
