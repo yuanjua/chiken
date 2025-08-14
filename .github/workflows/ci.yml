@@ -86,6 +86,13 @@ jobs:
         run: |
           ruff check . || true
 
+      - name: Run tests (JS)
+        run: pnpm test
+
+      - name: Run tests (Python)
+        run: |
+          pytest -q || true
+
       - name: Build Python sidecar
         shell: bash
         run: |
@@ -102,21 +109,3 @@ jobs:
           # Prevent signing/notarization in CI; release workflow will handle signing
           CI: true
         run: pnpm tauri build || true
-
-      - name: Run tests (JS)
-        run: pnpm test
-
-      - name: Run tests (Python)
-        run: |
-          pytest -q || true
-
-      - name: Upload build artifacts (always)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ matrix.os }}
-          path: |
-            src-tauri/target/**
-            build/**
-            dist/**
-            ./**/dist/**
