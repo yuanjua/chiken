@@ -1,38 +1,33 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect } from "react";
-import { activeSessionIdAtom, sessionsLoadedAtom, chatSessionsMapAtom } from "@/store/sessionAtoms";
-import {
-  isAppInitializedAtom,
-  isBackendReadyAtom,
-  resetLoadingStatesAtom,
-} from "@/store/uiAtoms";
+import { activeSessionIdAtom, chatSessionsMapAtom } from "@/store/sessionAtoms";
+import { isAppInitializedAtom } from "@/store/uiAtoms";
 import ChatInterface from "@/components/chat/ChatInterface";
-import { StartupScreen } from "@/components/StartupScreen";
+import { ConnectionScreen, useConnection } from "@/components/providers/ConnectionManager";
 import { generateUUID } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-export default function MainClientPage() {
+export default function MainPage() {
   const t = useTranslations("Common");
+  const { isReady: isBackendReady } = useConnection();
   const [isAppInitialized, setIsAppInitialized] = useAtom(isAppInitializedAtom);
-  const isBackendReady = useAtomValue(isBackendReadyAtom);
-  const setIsBackendReady = useSetAtom(isBackendReadyAtom);
-  const setSessionsLoaded = useSetAtom(sessionsLoadedAtom);
-  const resetLoadingStates = useSetAtom(resetLoadingStatesAtom);
   const [activeSessionId, setActiveSessionId] = useAtom(activeSessionIdAtom);
   const [chatSessionsMap, setChatSessionsMap] = useAtom(chatSessionsMapAtom);
 
+  // Initialize app when backend is ready
   useEffect(() => {
-    if (!isAppInitialized) {
-      setIsBackendReady(false);
-      setSessionsLoaded(false);
-      resetLoadingStates();
+    if (isBackendReady && !isAppInitialized) {
+      console.log("✅ Backend is ready, initializing app");
+      setIsAppInitialized(true);
     }
-  }, [isAppInitialized, setIsBackendReady, setSessionsLoaded, resetLoadingStates]);
+  }, [isBackendReady, isAppInitialized, setIsAppInitialized]);
 
+  // Create initial session when backend is ready and no active session exists
   useEffect(() => {
-    if (isBackendReady && !activeSessionId) {
+    if (isBackendReady && isAppInitialized && !activeSessionId) {
+      console.log("🆕 Creating initial chat session");
       const newSessionId = generateUUID();
       const newSession = {
         id: newSessionId,
@@ -49,12 +44,14 @@ export default function MainClientPage() {
       }));
       setActiveSessionId(newSessionId);
     }
-  }, [isBackendReady, activeSessionId, setActiveSessionId, setChatSessionsMap, t]);
+  }, [isBackendReady, isAppInitialized, activeSessionId, setActiveSessionId, setChatSessionsMap, t]);
 
-  if (!isBackendReady) {
-    return <StartupScreen onReady={() => setIsAppInitialized(true)} />;
+  // Show connection screen while not ready or initializing
+  if (!isBackendReady || !isAppInitialized) {
+    return <></>;
   }
 
+  // Show loading while creating initial session
   if (!activeSessionId) {
     return (
       <div className="h-screen w-screen bg-background flex items-center justify-center">
@@ -66,7 +63,6 @@ export default function MainClientPage() {
     );
   }
 
+  // Render the main chat interface
   return <ChatInterface sessionId={activeSessionId} />;
 }
-
-

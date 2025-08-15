@@ -13,6 +13,7 @@ import { MessagesSquare, SquareLibrary, Binary, RefreshCw } from "lucide-react";
 import ZoteroCollections from "../zotero/ZoteroCollections";
 import ChatSessions from "./ChatSessions";
 import { KnowledgeBaseCreationDialog } from "../knowledge/KnowledgeBaseCreationDialog";
+import { ConnectionOverlay } from "../providers/ConnectionManager";
 import type { TreeNode } from "@/store/uiAtoms";
 import { useTranslations } from "next-intl";
 
@@ -60,7 +61,8 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-background">
+    <div className="flex flex-col h-full w-full bg-background relative">
+      <ConnectionOverlay loadingText="Loading sessions..." />
       {/* Chat Sessions - Takes 50% of available space */}
       <div className="flex flex-col h-1/2">
         <div className="px-4 py-2 flex-shrink-0">

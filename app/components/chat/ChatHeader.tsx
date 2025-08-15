@@ -25,6 +25,7 @@ import { selectedRAGDocumentsAtom } from "@/store/ragAtoms";
 import { chatSessionsMapAtom } from "@/store/sessionAtoms";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
+import { setStoredLocale } from "@/lib/tauri-store";
 
 interface ChatHeaderProps {
   sessionId: string;
@@ -52,7 +53,8 @@ export function ChatHeader({ sessionId, messagesLength }: ChatHeaderProps) {
     });
   };
 
-  const changeLocale = (locale: "en" | "zh") => {
+  const changeLocale = async (locale: "en" | "zh") => {
+    await setStoredLocale(locale);
     const segments = pathname.split("/");
     const supported = new Set(["en", "zh"]);
     if (segments.length > 1 && supported.has(segments[1])) {

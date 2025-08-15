@@ -2,7 +2,9 @@
   "identifier": "main-capability",
   "description": "Capability for the main window",
   "local": true,
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:path:default",
     "core:event:default",
@@ -52,6 +54,7 @@
     "dialog:allow-save",
     "fs:allow-create",
     "fs:allow-write-text-file",
-    "fs:scope-download-recursive"
+    "fs:scope-download-recursive",
+    "store:default"
   ]
 }

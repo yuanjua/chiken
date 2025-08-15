@@ -199,9 +199,11 @@ export default function ZoteroCollections({
   // Refresh when refreshTrigger changes
   useEffect(() => {
     if (refreshTrigger && hasLoaded) {
+      // Clear selections when refreshing
+      setSelectedKeys(new Set());
       loadCollections();
     }
-  }, [refreshTrigger, hasLoaded, loadCollections]);
+  }, [refreshTrigger, hasLoaded, loadCollections, setSelectedKeys]);
 
   // Update selection states when selectedKeys changes (e.g., after KB creation)
   useEffect(() => {

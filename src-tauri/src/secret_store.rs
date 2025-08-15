@@ -22,5 +22,3 @@ pub fn get_secret() -> Result<Option<String>, String> {
         Err(e) => Err(format!("Failed to get secret: {}", e)),
     }
 }
-
-

@@ -1,9 +1,9 @@
 "use client";
 
-import MainClientPage from "../MainClientPage";
+import MainPage from "../components/MainPage";
 
 export default function LocaleHome() {
-  return <MainClientPage />;
+  return <MainPage />;
 }
 
 
