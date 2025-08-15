@@ -14,8 +14,8 @@
     "tauri": "tauri",
     "export": "next export",
     "start": "next start",
-  "lint": "next lint",
-  "test": "echo \"No tests yet\""
+    "lint": "next lint",
+    "test": "echo \"No tests yet\""
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -42,6 +42,7 @@
     "@tauri-apps/plugin-http": "^2.5.0",
     "@tauri-apps/plugin-os": "^2.3.0",
     "@tauri-apps/plugin-shell": "^2.3.0",
+    "@tauri-apps/plugin-store": "~2",
     "@tauri-apps/plugin-window-state": "~2",
     "@types/katex": "^0.16.7",
     "@types/node": "24.0.10",

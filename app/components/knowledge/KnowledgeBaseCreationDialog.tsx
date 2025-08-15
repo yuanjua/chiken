@@ -396,7 +396,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-2">
+              {/* <div className="flex items-center justify-between py-2">
                 <div className="space-y-1">
                   <Label className="text-sm">{t("enableRefFiltering")}</Label> 
                   <span className="text-xs text-gray-500">{t("refFilteringBadge")}</span>
@@ -411,7 +411,7 @@ const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverla
                   disabled={isCreating}
                   className="data-[state=checked]:bg-blue-400 data-[state=unchecked]:bg-black-300 dark:data-[state=checked]:bg-green-500 dark:data-[state=unchecked]:bg-gray-600 [&>span]:bg-white [&>span]:shadow-md"
                 />
-              </div>
+              </div> */}
 
             </div>
           )}

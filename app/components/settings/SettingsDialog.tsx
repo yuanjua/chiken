@@ -33,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Zap, Palette, Brain } from "lucide-react";
 import { EnvVariablesConfig } from "@/components/config/EnvVariablesConfig";
 import { useTranslations } from "next-intl";
+import { setStoredTheme } from "@/lib/tauri-store";
 
 interface SettingsDialogProps {
   children?: React.ReactNode;
@@ -191,7 +192,10 @@ export function SettingsDialog({
                 <Label htmlFor="theme-select" className="text-sm">{t("theme")}</Label>
                 <Select
                   value={theme}
-                  onValueChange={(value: any) => setTheme(value)}
+                  onValueChange={async (value: any) => {
+                    setTheme(value);
+                    await setStoredTheme(value);
+                  }}
                 >
                   <SelectTrigger className="w-32">
                     <SelectValue />

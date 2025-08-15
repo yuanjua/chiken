@@ -1,18 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::path::PathBuf;
 use std::{
     env,
     sync::{Arc, Mutex},
 };
-use std::path::PathBuf;
 use tauri::{Emitter, Manager, RunEvent};
+use tauri_plugin_decorum::WebviewWindowExt;
+use tauri_plugin_dialog;
+use tauri_plugin_fs;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
-use tauri_plugin_decorum::WebviewWindowExt;
-use tauri_plugin_fs;
-use tauri_plugin_dialog;
 mod secret_store;
 
 // TODO: change pyinstaller to --onedir. refs: https://github.com/tauri-apps/tauri/discussions/3273
@@ -189,8 +189,9 @@ fn get_backend_url() -> Result<String, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_window_state::Builder::new().build())
-        .plugin(tauri_plugin_shell::init()) 
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_decorum::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
@@ -206,9 +207,11 @@ fn main() {
 
             // Create a custom titlebar for main window
             // On Windows this will hide decoration and render custom window controls
-            // On macOS it expects a hiddenTitle: true and titleBarStyle: overlay   
+            // On macOS it expects a hiddenTitle: true and titleBarStyle: overlay
             let main_window = app.get_webview_window("main").unwrap();
-            main_window.create_overlay_titlebar().expect("[tauri] Failed to create overlay titlebar");
+            main_window
+                .create_overlay_titlebar()
+                .expect("[tauri] Failed to create overlay titlebar");
 
             Ok(())
         })
@@ -238,10 +241,9 @@ fn main() {
                             Ok(_) => {
                                 println!("[tauri] Sidecar terminated successfully on app exit")
                             }
-                            Err(e) => println!(
-                                "[tauri] Failed to terminate sidecar on app exit: {}",
-                                e
-                            ),
+                            Err(e) => {
+                                println!("[tauri] Failed to terminate sidecar on app exit: {}", e)
+                            }
                         }
                     } else {
                         println!("[tauri] No active sidecar to terminate");

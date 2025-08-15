@@ -3,9 +3,20 @@
 import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { themeAtom } from "@/store/uiAtoms";
+import { getStoredTheme } from "@/lib/tauri-store";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme] = useAtom(themeAtom);
+  const [theme, setTheme] = useAtom(themeAtom);
+
+  // Load persisted theme on mount
+  useEffect(() => {
+    (async () => {
+      const storedTheme = await getStoredTheme();
+      if (storedTheme && storedTheme !== theme) {
+        setTheme(storedTheme);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     // Use globalThis.window to avoid TypeScript errors and ensure browser-only DOM access
