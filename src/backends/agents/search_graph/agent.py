@@ -147,11 +147,28 @@ class SearchGraphAgent(BaseAgent):
                         s.current_user_message_content,
                         context_snippets,
                     )
-                    async for chunk in self.llm.astream(synth_prompt):
-                        if request and await request.is_disconnected():
-                            break
-                        if chunk.content:
-                            yield {"type": "content", "data": chunk.content}
+                    
+                    # Use base agent's cancellation hooks
+                    cancellation_event, monitor_task = self.create_cancellation_monitor(request)
+                    
+                    try:
+                        async for chunk in self.llm.astream(synth_prompt, cancellation_event=cancellation_event):
+                            if cancellation_event.is_set():
+                                logger.info("Search agent LLM streaming cancelled.")
+                                break
+                            # ChatGenerationChunk has content in chunk.message.content
+                            if hasattr(chunk, 'message') and hasattr(chunk.message, 'content') and chunk.message.content:
+                                yield {"type": "content", "data": chunk.message.content}
+                    except Exception as e:
+                        if "CancellationError" in str(type(e)) or "cancelled" in str(e).lower():
+                            logger.info("Search agent LLM streaming was cancelled.")
+                            yield {"type": "content", "data": "Request was cancelled."}
+                        else:
+                            raise e
+                    finally:
+                        # Clean up using base agent method
+                        await self.cleanup_cancellation_monitor(cancellation_event, monitor_task)
+                    
                     yield {"type": "content", "data": "\n"}
             except Exception as ee:
                 logger.warning(f"SearchGraphAgent: synthesis generation failed: {ee}")

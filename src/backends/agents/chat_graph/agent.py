@@ -82,14 +82,29 @@ class ChatAgent(BaseAgent):
             if prepared_messages:
                 logger.info("ChatAgent: Starting LLM streaming...")
                 yield {"type": "progress", "data": {"message": random.choice(self.COZY_MESSAGES)}}
-                async for chunk in self.graphs.llm.astream(prepared_messages):
-                    if request and await request.is_disconnected():
-                        logger.warning("Client disconnected during generation.")
-                        break
+                
+                # Use base agent's cancellation hooks
+                cancellation_event, monitor_task = self.create_cancellation_monitor(request)
+                
+                try:
+                    async for chunk in self.graphs.llm.astream(prepared_messages, cancellation_event=cancellation_event):
+                        if cancellation_event.is_set():
+                            logger.info("LLM streaming cancelled.")
+                            break
 
-                    if chunk.content:
-                        full_response_chunks.append(chunk.content)
-                        yield chunk.content
+                        if chunk.message.content:
+                            content = chunk.message.content
+                            full_response_chunks.append(content)
+                            yield content
+                except Exception as e:
+                    if "CancellationError" in str(type(e)) or "cancelled" in str(e).lower():
+                        logger.info("LLM streaming was cancelled.")
+                        yield "Request was cancelled."
+                    else:
+                        raise e
+                finally:
+                    # Clean up using base agent method
+                    await self.cleanup_cancellation_monitor(cancellation_event, monitor_task)
             else:
                 error_msg = "Critical error: Generation graph failed to prepare messages."
                 logger.error(error_msg)

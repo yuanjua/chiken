@@ -1,4 +1,5 @@
 {
+  "providerLabel": "Provider",
   "chatModel": "Chat Model",
   "refresh": "Refresh",
   "searchModelsPlaceholder": "Type to search {provider} models",

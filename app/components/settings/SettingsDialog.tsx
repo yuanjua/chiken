@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getSystemConfig } from "@/lib/api-client";
 import { selectedModelAtom } from "@/store/chatAtoms";
 import { themeAtom } from "@/store/uiAtoms";
@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings, Zap, Palette, Brain } from "lucide-react";
 import { EnvVariablesConfig } from "@/components/config/EnvVariablesConfig";
+import { ProviderInfoCard } from "@/components/config/ProviderInfoCard";
 import { useTranslations } from "next-intl";
 import { setStoredTheme } from "@/lib/tauri-store";
 
@@ -123,6 +124,7 @@ export function SettingsDialog({
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4" />
                 <Label className="text-sm font-medium">{t("providerAndModel")}</Label>
+                <ProviderInfoCard />
               </div>
               <ProviderConfigButton simpleContent={true} refreshTrigger={refreshTrigger} />
             </div>

@@ -1,4 +1,5 @@
 {
+  "providerLabel": "提供商",
   "chatModel": "聊天模型",
   "refresh": "刷新",
   "searchModelsPlaceholder": "输入以搜索 {provider} 模型",
