@@ -27,9 +27,13 @@
 
 We recommend [Ollama](https://ollama.com/) for simple chat and embedding—it’s easy to install and use. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
 
+❓Prompts asking for keyring access: ChiKen stores your API-KEYs in your system if there are any.
+
 For more detailed instructions, check out the [Getting Started Guide](GETTING_STARTED.md).
 
 ![Get Started](assets/get-started.png)
+
+Fun fact: hit the free-tier limit after 2 messages — perfect timing for a short demo! 🤗
 
 https://github.com/user-attachments/assets/7a20f4da-a76b-4e3b-8e10-43b7927d67b4
 
