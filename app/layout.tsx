@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ClientProviders } from "@/components/providers/ClientProviders";
 
 export const metadata = {
   title: "ChiKen",
@@ -12,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className="font-sans h-full overflow-hidden">{children}</body>
+      <body className="font-sans h-full overflow-hidden">
+        <ClientProviders>
+          {children}
+        </ClientProviders>
+      </body>
     </html>
   );
 }

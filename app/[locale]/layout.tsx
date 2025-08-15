@@ -2,8 +2,6 @@ import { NextIntlClientProvider } from "next-intl";
 import "../globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { JotaiProvider } from "@/components/providers/JotaiProvider";
-import { ConnectionManager } from "@/components/providers/ConnectionManager";
 import AppLayout from "@/components/layout/AppLayout";
 import Titlebar from "@/components/layout/Titlebar";
 
@@ -35,17 +33,13 @@ export default async function LocaleLayout({
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="h-full">
-      <JotaiProvider>
-        <ThemeProvider>
-          <Titlebar />
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <ConnectionManager>
-              <AppLayout>{children}</AppLayout>
-              <Toaster />
-            </ConnectionManager>
-          </NextIntlClientProvider>
-        </ThemeProvider>
-      </JotaiProvider>
+      <ThemeProvider>
+        <Titlebar />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <AppLayout>{children}</AppLayout>
+          <Toaster />
+        </NextIntlClientProvider>
+      </ThemeProvider>
     </div>
   );
 }

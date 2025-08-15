@@ -4,7 +4,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState, createContext, useContext } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { checkBackendHealth, listSessions } from "@/lib/api-client";
-import { useTranslations } from "next-intl";
 import {
   isBackendReadyAtom,
   isBackendLoadingAtom,
@@ -34,7 +33,6 @@ interface ConnectionManagerProps {
 }
 
 export function ConnectionManager({ children }: ConnectionManagerProps) {
-  const t = useTranslations("Common");
   const [isBackendReady, setIsBackendReady] = useAtom(isBackendReadyAtom);
   const [, setIsBackendLoading] = useAtom(isBackendLoadingAtom);
   const resetLoadingStates = useSetAtom(resetLoadingStatesAtom);
@@ -49,14 +47,25 @@ export function ConnectionManager({ children }: ConnectionManagerProps) {
     if (typeof globalThis !== 'undefined' && (globalThis as any).window === undefined) return;
     
     console.log("🚀 ConnectionManager: Initializing backend state");
-    setIsBackendLoading(true);
-    setIsBackendReady(false);
-    resetLoadingStates();
+    
+    // Only reset backend state if it's not already ready
+    // This prevents unnecessary resets during locale changes
+    if (isBackendReady !== true) {
+      console.log("🔄 ConnectionManager: Backend not ready, starting initialization");
+      setIsBackendLoading(true);
+      setIsBackendReady(false);
+      resetLoadingStates();
+    } else {
+      console.log("✅ ConnectionManager: Backend already ready, skipping reset");
+    }
 
     return () => {
-      setIsBackendLoading(false);
+      // Only reset loading state if we set it
+      if (isBackendReady !== true) {
+        setIsBackendLoading(false);
+      }
     };
-  }, [setIsBackendLoading, setIsBackendReady, resetLoadingStates]);
+  }, [setIsBackendLoading, setIsBackendReady, resetLoadingStates, isBackendReady]);
 
   // Setup sidecar event listeners
   useEffect(() => {
@@ -92,6 +101,12 @@ export function ConnectionManager({ children }: ConnectionManagerProps) {
   // Health check with infinite retries
   useEffect(() => {
     if (typeof globalThis !== 'undefined' && (globalThis as any).window === undefined) return;
+    
+    // Skip health check if backend is already ready
+    if (isBackendReady === true) {
+      console.log("✅ ConnectionManager: Backend already ready, skipping health check");
+      return;
+    }
 
     let timeoutId: NodeJS.Timeout;
     let attempts = 0;
@@ -126,7 +141,7 @@ export function ConnectionManager({ children }: ConnectionManagerProps) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [setIsBackendLoading, setIsBackendReady]);
+  }, [setIsBackendLoading, setIsBackendReady, isBackendReady]);
 
   const connectionState: ConnectionState = {
     isConnecting: !isBackendReady,
