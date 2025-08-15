@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, Database, X, Loader2, Lightbulb } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { ConnectionOverlay } from "../providers/ConnectionManager";
 
 import { KnowledgeBaseList } from "./KnowledgeBaseList";
 import { KnowledgeBaseQuerySection } from "./KnowledgeBaseQuerySection";
@@ -191,7 +192,8 @@ export function KnowledgeBaseSidebar() {
   }, [activeKnowledgeBaseIds, isBackendReady, hasLoaded]);
 
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background relative">
+      <ConnectionOverlay loadingText="Loading knowledge bases..." />
       {/* Compact Header */}
       <div className="flex items-center gap-2 pt-2 px-2 py-1">
         <Button

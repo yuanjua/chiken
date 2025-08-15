@@ -3,7 +3,9 @@ import "../globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { JotaiProvider } from "@/components/providers/JotaiProvider";
+import { ConnectionManager } from "@/components/providers/ConnectionManager";
 import AppLayout from "@/components/layout/AppLayout";
+import Titlebar from "@/components/layout/Titlebar";
 
 export const metadata = {
   title: "ChiKen",
@@ -33,14 +35,17 @@ export default async function LocaleLayout({
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="h-full">
-      <NextIntlClientProvider locale={locale} messages={messages}>
-        <JotaiProvider>
-          <ThemeProvider>
-            <AppLayout>{children}</AppLayout>
-            <Toaster />
-          </ThemeProvider>
-        </JotaiProvider>
-      </NextIntlClientProvider>
+      <JotaiProvider>
+        <ThemeProvider>
+          <Titlebar />
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <ConnectionManager>
+              <AppLayout>{children}</AppLayout>
+              <Toaster />
+            </ConnectionManager>
+          </NextIntlClientProvider>
+        </ThemeProvider>
+      </JotaiProvider>
     </div>
   );
 }

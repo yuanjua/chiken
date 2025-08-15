@@ -8,10 +8,6 @@
 @source inline("transition-all duration-300 ease-in-out");
 @source inline("w-0 w-64 w-80 opacity-0 opacity-100");
 
-/* titlebar draggable area */
-[data-tauri-decorum-tb] {
-  height: 28px !important;
-}
 /* Pad top to leave space for titlebar */
 .main-content {
   padding-top: 21px;
