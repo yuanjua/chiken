@@ -43,6 +43,15 @@ class LLMService:
                     else "service",
                 }
             )
+        
+        # Manually add hosted_vllm since it's OpenAI compatible but not in models_by_provider
+        providers.append({
+            "id": "hosted_vllm",
+            "name": "Hosted VLLM",
+            "model_count": len(models_by_provider.get("openai", [])),  # Use OpenAI models for compatibility
+            "type": "service",
+        })
+        
         return providers
 
     @staticmethod
@@ -53,6 +62,9 @@ class LLMService:
     @staticmethod
     def get_litellm_models_by_provider(provider: str) -> list[str]:
         """Return models for a specific provider."""
+        # hosted_vllm is OpenAI compatible, so use OpenAI models
+        if provider == "hosted_vllm":
+            return sorted(models_by_provider.get("openai", []))
         return sorted(models_by_provider.get(provider, []))
 
     @staticmethod
@@ -81,13 +93,10 @@ class LLMService:
             available_models = []
             provider_type = config.provider_type
 
-            # Determine display base URL from env rather than stored field
-            display_base_url = None
-
+            # For Ollama, we still need to query the instance to get available models
             if provider_type == "ollama":
                 try:
                     effective_base = os.environ.get("OLLAMA_API_BASE")
-                    display_base_url = effective_base or None
                     available_models = []
                     if effective_base:
                         timeout = aiohttp.ClientTimeout(total=5.0)
@@ -103,6 +112,7 @@ class LLMService:
                 available_models.extend([model.replace("ollama/", "") for model in litellm_ollama_models])
                 available_models = list(set(available_models))
             else:
+                # For all other providers including hosted_vllm, use LiteLLM model lists
                 available_models = LLMService.get_litellm_models_by_provider(provider_type)
             cost_info = await LLMService.get_model_cost_info(config.model_name)
             return {
@@ -112,7 +122,7 @@ class LLMService:
                 "embed_provider": config.embed_provider,
                 "temperature": config.temperature,
                 "num_ctx": config.num_ctx,
-                "base_url": display_base_url if provider_type in ("ollama", "openai") else None,
+                "base_url": None,  # LiteLLM handles base URLs via environment variables
                 "api_key": None,
                 "available_models": available_models,
                 "suggested_models": LLMService.get_litellm_models_by_provider(provider_type),

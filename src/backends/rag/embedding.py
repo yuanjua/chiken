@@ -27,6 +27,10 @@ class LiteLLMEmbeddingFunction:
         # Note: We don't set global LiteLLM configs here to avoid conflicts
         # Instead, we pass them per-request to maintain thread safety
 
+    def name(self) -> str:
+        """Return the name of the embedding function for ChromaDB compatibility."""
+        return f"litellm_{self.model_name.replace('/', '_').replace('-', '_')}"
+
     def __call__(self, input: list[str]) -> list[list[float]]:
         """Generate embeddings for a list of texts using LiteLLM."""
         texts = input if isinstance(input, list) else [input]
@@ -40,11 +44,10 @@ class LiteLLMEmbeddingFunction:
                     "input": text,
                 }
 
-                # Add optional parameters if provided
+                # Add optional API key if provided
+                # LiteLLM will automatically handle base URLs via environment variables
                 if self.api_key:
                     params["api_key"] = self.api_key
-                if self.base_url:
-                    params["api_base"] = self.base_url
 
                 # Use LiteLLM embedding function
                 response = litellm.embedding(**params)
@@ -90,6 +93,7 @@ async def get_embedding_function(model=None):
         "openrouter": "OPENROUTER_API_KEY",
         "together": "TOGETHERAI_API_KEY",
         "huggingface": "HF_TOKEN",
+        "hosted_vllm": "HOSTED_VLLM_API_KEY",
     }
     if provider in provider_env_map:
         api_key = os.environ.get(provider_env_map[provider])
@@ -111,27 +115,12 @@ async def get_embedding_function(model=None):
             detail=f"Missing API key for embedding provider '{provider}'. Please set it in Environment Variables.",
         )
 
-    # For Ollama models, prefer the custom implementation; fallback to LiteLLM
-    if provider == "ollama" or (embed_model and "ollama/" in embed_model):
-        # Try custom first
-        try:
-            logger.info(f"Using custom Ollama embedding function for model: {embed_model}")
-            return await get_custom_ollama_embedding_function(model=embed_model)
-        except Exception as e:
-            logger.warning(f"Custom Ollama embedding failed, falling back to LiteLLM: {e}")
-        # Fallback to LiteLLM with base_url from env only
-        base_url = os.environ.get("OLLAMA_API_BASE")
-        return LiteLLMEmbeddingFunction(
-            model_name=embed_model,
-            api_key=api_key,
-            base_url=base_url,
-        )
-
-    # Non-Ollama providers: use LiteLLM
+    # Use LiteLLM for all providers - it handles base URLs automatically via environment variables
+    # LiteLLM will use env vars like OLLAMA_API_BASE, HOSTED_VLLM_API_BASE, OPENAI_BASE_URL, etc.
     return LiteLLMEmbeddingFunction(
         model_name=embed_model,
         api_key=api_key,
-        base_url=None,
+        base_url=None,  # Let LiteLLM handle URLs via env vars
     )
 
 
@@ -146,6 +135,7 @@ async def get_provider_api_key(provider: str) -> str | None:
         "openrouter": "OPENROUTER_API_KEY",
         "together": "TOGETHERAI_API_KEY",
         "huggingface": "HF_TOKEN",
+        "hosted_vllm": "HOSTED_VLLM_API_KEY",
     }
     env_name = provider_env_map.get(provider)
     if env_name:

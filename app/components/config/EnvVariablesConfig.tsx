@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 // Frontend loads and persists environment variables via Tauri keychain only
 import * as secretStore from "@/lib/secret-store";
 import { reloadBackendConfig } from "@/lib/api-client";
@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Minus, Plus, Info, Key } from "lucide-react";
+import { Minus, Plus, Key } from "lucide-react";
+import { EnvVarInfoCard } from "./EnvVarInfoCard";
 import { useTranslations } from "next-intl";
 
 type EditableVar = {
@@ -28,8 +29,6 @@ export function EnvVariablesConfig() {
   const [newName, setNewName] = useState("");
   const [newValue, setNewValue] = useState("");
   const [recommendedVars, setRecommendedVars] = useState<{ name: string; description?: string }[]>([]);
-  const [showInfo, setShowInfo] = useState(false);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -51,6 +50,7 @@ export function EnvVariablesConfig() {
           { name: "ACADEMIC_MAILTO", description: t("descAcademicMailto") },
           { name: "SEMANTIC_SCHOLAR_API_KEY", description: t("descS2") },
           { name: "NCBI_API_KEY", description: t("descNCBI") },
+          { name: "HOSTED_VLLM_API_KEY", description: t("descHostedVLLM") }
         ];
 
         const recMap = new Map<string, string | undefined>();
@@ -180,55 +180,11 @@ export function EnvVariablesConfig() {
       <div className="flex items-center gap-2">
         <Key className="h-4 w-4" />
         <Label className="text-sm font-medium"> {t("title")} </Label>
-        <div
-          className="relative"
-          onMouseEnter={() => {
-            if (hideTimerRef.current) {
-              clearTimeout(hideTimerRef.current);
-              hideTimerRef.current = null;
-            }
-            setShowInfo(true);
-          }}
-          onMouseLeave={() => {
-            if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-            hideTimerRef.current = setTimeout(() => setShowInfo(false), 400);
-          }}
-        >
-          <Info className="h-4 w-4" />
-          {showInfo && (
-            <div
-              className="absolute left-0 mt-2 z-50 w-[360px] max-w-[80vw] rounded-md border border-border shadow-lg"
-              style={{
-                backgroundColor: "hsl(var(--color-popover))",
-                color: "hsl(var(--color-popover-foreground))",
-              }}
-            >
-              <div className="px-3 py-2 border-b text-xs font-medium text-muted-foreground">{t("recommended")}</div>
-              <div className="max-h-60 overflow-auto p-3">
-                <table className="w-full text-xs">
-                  <colgroup>
-                    <col style={{ width: '45%' }} />
-                    <col style={{ width: '55%' }} />
-                  </colgroup>
-                  <tbody>
-                    {recommendedVars && recommendedVars.length > 0 ? (
-                      recommendedVars.map((rv) => (
-                        <tr key={rv.name} className="border-b last:border-b-0">
-                          <td className="py-1 pr-2 align-top font-mono text-[11px] text-muted-foreground">{rv.name}</td>
-                          <td className="py-1 align-top text-[11px]">{rv.description || ''}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td className="py-1 text-[11px] text-muted-foreground" colSpan={2}>{t("noRecommendations")}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
+        <EnvVarInfoCard
+          envVars={recommendedVars}
+          title={t("recommended")}
+          compact={true}
+        />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
