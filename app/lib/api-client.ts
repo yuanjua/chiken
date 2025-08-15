@@ -822,5 +822,6 @@ export const providerToEnvKey: Record<string, { api: string; base?: string }> = 
   together: { api: "TOGETHERAI_API_KEY" },
   huggingface: { api: "HF_TOKEN" },
   ollama: { api: "", base: "OLLAMA_API_BASE" },
+  hosted_vllm: { api: "HOSTED_VLLM_API_KEY", base: "HOSTED_VLLM_API_BASE" },
 };
 

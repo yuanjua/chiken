@@ -144,15 +144,9 @@ class UserConfig(BaseModel):
             "num_ctx": self.num_ctx,
         }
 
-        # Compute effective base URL from secrets/env (do not use stored base_url field)
-        effective_base_url: str | None = None
-        if provider_type == "ollama":
-            effective_base_url = os.environ.get("OLLAMA_API_BASE")
-        elif provider_type == "openai":
-            effective_base_url = os.environ.get("OPENAI_BASE_URL")
-
-        if effective_base_url:
-            config["base_url"] = effective_base_url
+        # LiteLLM handles base URLs automatically via environment variables
+        # No need to manually pass base_url - LiteLLM will use env vars like:
+        # OLLAMA_API_BASE, OPENAI_BASE_URL, HOSTED_VLLM_API_BASE, etc.
 
         return config
 
