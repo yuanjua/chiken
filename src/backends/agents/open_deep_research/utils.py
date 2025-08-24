@@ -38,6 +38,7 @@ from .state import ResearchComplete, Summary
 
 # Import search_documents tool from the project
 from ...tools.chroma.read_tools import search_documents
+from .tools import tools_list as custom_tools
 
 ##########################
 # Tavily Search Tool Utils
@@ -792,23 +793,10 @@ async def get_all_tools(config: RunnableConfig):
         List of all configured and available tools for research operations
     """
     # Start with core research tools
-    tools = [tool(ResearchComplete), think_tool]
+    tools = [tool(ResearchComplete), think_tool] + custom_tools
     
-    # Add configured search tools
-    configurable = Configuration.from_runnable_config(config)
-    search_api = SearchAPI(get_config_value(configurable.search_api))
-    search_tools = await get_search_tool(search_api)
-    tools.extend(search_tools)
-    
-    # Track existing tool names to prevent conflicts
-    existing_tool_names = {
-        tool.name if hasattr(tool, "name") else tool.get("name", "web_search") 
-        for tool in tools
-    }
-    
-    # Add MCP tools if configured
-    mcp_tools = await load_mcp_tools(config, existing_tool_names)
-    tools.extend(mcp_tools)
+    logger.debug(f"Final tool count: {len(tools)}")
+    logger.debug(f"Available tools: {[t.name if hasattr(t, 'name') else t.get('name', 'unknown') for t in tools]}")
     
     return tools
 

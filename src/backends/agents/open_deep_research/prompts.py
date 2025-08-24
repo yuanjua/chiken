@@ -144,11 +144,12 @@ You can use any of the tools provided to you to find resources that can help ans
 
 <Available Tools>
 You have access to these tools:
-1. **search_tool**: For searching through uploaded documents and knowledge bases
-2. **think_tool**: For reflection and strategic planning during research
+{tools_description}
 {mcp_prompt}
 
-**CRITICAL: Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool with the search tool or any other tools. It should be to reflect on the results of the search.**
+CRITICAL tool-usage rules:
+- Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool in parallel with other tools.
+- When you have sufficient information to answer the question comprehensively, explicitly call ResearchComplete to signal you are done.
 </Available Tools>
 
 <Instructions>

@@ -99,17 +99,39 @@ class OpenDeepResearchAgent(BaseAgent):
             yield {"type": "progress", "data": {"message": "🚀 Running deep_researcher workflow..."}}
 
             start_time = asyncio.get_event_loop().time()
-            result = await self.research_agent.ainvoke(graph_input, runnable_config)
+            # Stream progress by stepping through the graph
+            final_state = None
+            async for event in self.research_agent.astream(graph_input, runnable_config):
+                final_state = event
+                if isinstance(event, dict):
+                    if "clarify_with_user" in event:
+                        yield {"type": "progress", "data": {"message": "Clarification stage complete"}}
+                    if "write_research_brief" in event:
+                        yield {"type": "progress", "data": {"message": "Research brief prepared"}}
+                    if "research_supervisor" in event:
+                        yield {"type": "progress", "data": {"message": "Research supervision and delegation running"}}
+                    if "researcher" in event:
+                        yield {"type": "progress", "data": {"message": "Researcher analyzing and planning tool usage"}}
+                    if "researcher_tools" in event:
+                        yield {"type": "progress", "data": {"message": "Tools executed, processing results"}}
+                    if "compress_research" in event:
+                        yield {"type": "progress", "data": {"message": "Compressing and synthesizing research findings"}}
+                    if "final_report_generation" in event:
+                        yield {"type": "progress", "data": {"message": "Final report generation in progress"}}
             end_time = asyncio.get_event_loop().time()
 
             execution_time = end_time - start_time
             yield {"type": "progress", "data": {"message": f"✅ Research completed in {execution_time:.1f}s"}}
 
             final_report = None
-            if isinstance(result, dict):
-                final_report = result.get("final_report") or result.get("compressed_research")
+            if isinstance(final_state, dict):
+                final_report = (
+                    final_state.get("final_report")
+                    or final_state.get("final_report_generation", {}).get("final_report")
+                    or final_state.get("compressed_research")
+                )
             if not final_report:
-                final_report = str(result)
+                final_report = str(final_state) if final_state is not None else "Research complete."
 
             if final_report and len(final_report.split()) < 100:
                 yield {"type": "progress", "data": {"message": "⚠️  Output looks brief; verify model/tool configuration if needed."}}

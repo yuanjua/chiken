@@ -210,21 +210,11 @@ Respond with your tool usage decision and reasoning."""
             )
             return AIMessage(content=response.choices[0].message.content)
         
-        # Execute tool calls
+        # CRITICAL FIX: Return tool calls for graph execution instead of executing internally
+        # The deep_researcher graph's researcher_tools node will handle execution
         tool_calls_data = []
-        tool_results = []
-        
-        # Create tools lookup
-        tools_by_name = {}
-        for tool in self.tools:
-            tool_name = getattr(tool, 'name', getattr(tool, '__name__', str(tool)))
-            tools_by_name[tool_name] = tool
         
         for i, tool_call in enumerate(tool_decision.tool_calls):
-            if tool_call.name not in tools_by_name:
-                continue
-                
-            tool = tools_by_name[tool_call.name]
             call_id = f"call_{i}"
             
             # Add to tool calls data (for AIMessage)
@@ -234,95 +224,13 @@ Respond with your tool usage decision and reasoning."""
                 "id": call_id,
                 "type": "tool_call"
             })
+                
+        # Return AIMessage with ONLY the planned tool calls - no execution or synthesis
+        return AIMessage(
+            content=tool_decision.reasoning,  # Use the model's reasoning as content
+            tool_calls=tool_calls_data
+        )
             
-            # Execute tool with proper argument handling
-            try:
-                # Handle DuckDuckGo search special case - convert query to queries list
-                args = tool_call.args
-                if tool_call.name == "duckduckgo_search" and "query" in args and "queries" not in args:
-                    args = {**args, "queries": [args.pop("query")]}
-                
-                print(f"🔧 Executing {tool_call.name} with args: {str(args)[:100]}...")
-                
-                # Always try async first for LangChain tools, then sync fallback
-                try:
-                    if hasattr(tool, 'ainvoke'):
-                        result = await tool.ainvoke(args)
-                    elif asyncio.iscoroutinefunction(tool.func):
-                        result = await tool.ainvoke(args)
-                    else:
-                        result = tool.invoke(args)
-                except Exception as sync_error:
-                    print(f"⚠️  Sync invocation failed, trying async: {sync_error}")
-                    try:
-                        result = await tool.ainvoke(args)
-                    except Exception as async_error:
-                        raise async_error
-                    
-                print(f"✅ {tool_call.name} completed: {str(result)[:200]}...")
-                tool_results.append(result)
-            except Exception as e:
-                error_msg = f"Error executing {tool_call.name}: {str(e)}"
-                print(f"❌ {error_msg}")
-                tool_results.append(error_msg)
-        
-        # Now generate final response incorporating tool results
-        if tool_results:
-            print(f"🔧 Tool execution completed. Generating final response with {len(tool_results)} results...")
-            
-            # Create a comprehensive prompt with tool results
-            tool_results_text = ""
-            for i, (tool_call, result) in enumerate(zip(tool_decision.tool_calls, tool_results)):
-                tool_results_text += f"\n\nTool {i+1} ({tool_call.name}) Results:\n{str(result)[:2000]}..."
-            
-            final_prompt = f"""Based on the original user request and the tool execution results below, provide a comprehensive final response.
-
-Original request: {messages_dict[-1].get('content', '') if messages_dict else ''}
-
-Tool execution results:{tool_results_text}
-
-Your reasoning: {tool_decision.reasoning}
-
-Please provide a comprehensive, well-structured response that incorporates the information gathered from the tools. Be specific, cite sources when available, and provide detailed analysis."""
-
-            # Get final response from the model
-            try:
-                from litellm import acompletion
-                final_response = await acompletion(
-                    model=self.model,
-                    messages=[{"role": "user", "content": final_prompt}],
-                )
-                final_content = final_response.choices[0].message.content
-                print(f"✅ Final response generated: {len(final_content)} chars")
-                
-                # Create AI message with tool calls and comprehensive content
-                ai_message = AIMessage(
-                    content=final_content,
-                    tool_calls=tool_calls_data
-                )
-                
-                return ai_message
-                
-            except Exception as e:
-                print(f"❌ Failed to generate final response: {e}")
-                # Fallback to basic response with tool results
-                combined_content = f"{tool_decision.reasoning}\n\nTool Results Summary:{tool_results_text[:1000]}..."
-                
-                ai_message = AIMessage(
-                    content=combined_content,
-                    tool_calls=tool_calls_data
-                )
-                
-                return ai_message
-        else:
-            # No tool results - return reasoning only
-            ai_message = AIMessage(
-                content=f"I'll help you with that. Let me use the available tools.\n\nReasoning: {tool_decision.reasoning}",
-                tool_calls=tool_calls_data
-            )
-            
-            return ai_message
-    
     def invoke(self, messages: List[Dict], config: Dict = None) -> AIMessage:
         """Synchronous invoke wrapper."""
         try:
