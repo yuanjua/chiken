@@ -2,7 +2,7 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("chiken-knowledge-bases")
 
-from ..tools.read_tools import (
+from ..tools.chroma.read_tools import (
     get_collection_info,
     get_document_by_id,
     list_collections,
@@ -10,7 +10,7 @@ from ..tools.read_tools import (
     query_documents_with_context,
     search_documents,
 )
-from ..tools.web import meta_search_tool
+from ..tools.web import web_meta_search_tool
 
 mcp.tool()(search_documents)
 mcp.tool()(query_documents_with_context)
@@ -20,4 +20,4 @@ mcp.tool()(list_collections)
 mcp.tool()(get_collection_info)
 mcp.tool()(peek_collection)
 
-mcp.tool()(meta_search_tool)
+mcp.tool()(web_meta_search_tool)

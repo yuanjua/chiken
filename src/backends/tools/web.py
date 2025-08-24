@@ -447,7 +447,7 @@ async def meta_search_papers(
         return []
 
 
-async def meta_search_tool(
+async def web_meta_search_tool(
     query: str,
     *,
     sources: list[str] | None = None,
@@ -483,7 +483,7 @@ async def meta_search_tool(
 # --- Main Execution ---
 async def main():
     query = "large language models"
-    results = await meta_search_tool(
+    results = await web_meta_search_tool(
         query,
         sources=["arxiv", "semantic_scholar", "openalex", "pubmed", "crossref"],
         year_range=(2020, None),
