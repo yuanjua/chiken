@@ -9,6 +9,7 @@ from typing import Annotated, Any, Dict, List, Literal, Optional
 
 import aiohttp
 from langchain.chat_models import init_chat_model
+from loguru import logger
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import (
     AIMessage,
@@ -31,9 +32,12 @@ from tavily import AsyncTavilyClient
 from duckduckgo_search import DDGS
 from bs4 import BeautifulSoup
 
-from open_deep_research.configuration import Configuration, SearchAPI
-from open_deep_research.prompts import summarize_webpage_prompt
-from open_deep_research.state import ResearchComplete, Summary
+from .configuration import Configuration, SearchAPI
+from .prompts import summarize_webpage_prompt
+from .state import ResearchComplete, Summary
+
+# Import search_documents tool from the project
+from ...tools.chroma.read_tools import search_documents
 
 ##########################
 # Tavily Search Tool Utils
@@ -174,6 +178,79 @@ async def tavily_search_async(
     # Execute all search queries in parallel and return results
     search_results = await asyncio.gather(*search_tasks)
     return search_results
+
+##########################
+# Document Search Tool Utils
+##########################
+
+DOCUMENT_SEARCH_DESCRIPTION = (
+    "Search through uploaded documents and knowledge bases. "
+    "Useful for finding information from your personal document collection, "
+    "research papers, and other uploaded materials."
+)
+
+@tool(description=DOCUMENT_SEARCH_DESCRIPTION)
+async def document_search_tool(
+    queries: List[str],
+    collection_name: Annotated[str, InjectedToolArg] = None,
+    max_results: Annotated[int, InjectedToolArg] = 10,
+    config: RunnableConfig = None
+) -> str:
+    """Search through documents in knowledge bases.
+
+    Args:
+        queries: List of search queries to execute
+        collection_name: Specific collection to search (None = search all active collections)
+        max_results: Maximum number of results to return per query
+        config: Runtime configuration
+
+    Returns:
+        Formatted string containing search results from documents
+    """
+    try:
+        all_results = []
+        
+        # Execute searches for each query
+        for query in queries:
+            search_results = await search_documents(
+                query=query,
+                collection_name=collection_name,
+                n_results=max_results,
+                include_similarity_scores=True
+            )
+            
+            # Add query context to results
+            for result in search_results:
+                result["query"] = query
+            
+            all_results.extend(search_results)
+        
+        # Deduplicate by content/key to avoid processing same content multiple times
+        unique_results = {}
+        for result in all_results:
+            key = result.get("key", result.get("content", "")[:100])
+            if key not in unique_results:
+                unique_results[key] = result
+        
+        # Format the output
+        if not unique_results:
+            return "No relevant documents found in the knowledge base. Please try different search terms or check if documents are uploaded to the knowledge base."
+        
+        formatted_output = "Document search results: \n\n"
+        for i, (key, result) in enumerate(unique_results.items()):
+            formatted_output += f"\n\n--- DOCUMENT {i+1}: {result.get('metadata', {}).get('title', 'Untitled')} ---\n"
+            formatted_output += f"Source: {result.get('source', 'Unknown')}\n"
+            if 'similarity_score' in result:
+                formatted_output += f"Relevance: {result['similarity_score']:.1f}%\n"
+            formatted_output += f"Query: {result.get('query', 'N/A')}\n\n"
+            formatted_output += f"CONTENT:\n{result.get('content', '')}\n\n"
+            formatted_output += "\n\n" + "-" * 80 + "\n"
+        
+        return formatted_output
+        
+    except Exception as e:
+        logger.error(f"Error in document search: {e}")
+        return f"Error searching documents: {str(e)}"
 
 ##########################
 # DuckDuckGo Search Tool Utils
@@ -653,7 +730,7 @@ async def get_search_tool(search_api: SearchAPI):
     """Configure and return search tools based on the specified API provider.
     
     Args:
-        search_api: The search API provider to use (Anthropic, OpenAI, Tavily, or None)
+        search_api: The search API provider to use (Anthropic, OpenAI, Tavily, Document Search, or None)
         
     Returns:
         List of configured search tool objects for the specified provider
@@ -686,6 +763,15 @@ async def get_search_tool(search_api: SearchAPI):
             **(search_tool.metadata or {}), 
             "type": "search",
             "name": "web_search"
+        }
+        return [search_tool]
+    elif search_api == SearchAPI.DOCUMENT_SEARCH:
+        # Configure document search tool with metadata
+        search_tool = document_search_tool
+        search_tool.metadata = {
+            **(search_tool.metadata or {}), 
+            "type": "document_search",
+            "name": "document_search"
         }
         return [search_tool]
         

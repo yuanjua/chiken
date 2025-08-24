@@ -46,7 +46,6 @@ class ToolWrapperLLM:
         tools: List[BaseTool] = None,
         parallel_tool_calls: bool = True,
         tool_choice: str = "auto",
-        base_url: str = "http://localhost:11435"
     ):
         """
         Initialize the tool wrapper.
@@ -56,14 +55,12 @@ class ToolWrapperLLM:
             tools: List of LangChain tools to bind
             parallel_tool_calls: Whether to allow parallel tool calls
             tool_choice: Tool choice strategy ("auto", "any", "none", or tool name)
-            base_url: Base URL for the model API
         """
         # Convert model name for LiteLLM compatibility
-        self.model = model.replace("ollama:", "ollama/") if "ollama:" in model else model
+        self.model = model
         self.tools = tools or []
         self.parallel_tool_calls = parallel_tool_calls
         self.tool_choice = tool_choice
-        self.base_url = base_url
         
         # Create instructor client
         self.client = instructor.from_litellm(
@@ -179,7 +176,6 @@ Respond with your tool usage decision and reasoning."""
             response = await completion(
                 model=self.model,
                 messages=messages_dict,
-                base_url=self.base_url
             )
             return AIMessage(content=response.choices[0].message.content)
         
@@ -193,7 +189,6 @@ Respond with your tool usage decision and reasoning."""
                 model=self.model,
                 response_model=ToolChoice,
                 messages=[{"role": "user", "content": tool_prompt}],
-                base_url=self.base_url,
                 max_retries=2
             )
             print(f"✅ Tool decision successful: should_use_tool={tool_decision.should_use_tool}, tool_calls={len(tool_decision.tool_calls) if tool_decision.tool_calls else 0}")
@@ -204,7 +199,6 @@ Respond with your tool usage decision and reasoning."""
             response = await completion(
                 model=self.model,
                 messages=messages_dict,
-                base_url=self.base_url
             )
             return AIMessage(content=response.choices[0].message.content)
         
@@ -213,7 +207,6 @@ Respond with your tool usage decision and reasoning."""
             response = await completion(
                 model=self.model,
                 messages=messages_dict,
-                base_url=self.base_url
             )
             return AIMessage(content=response.choices[0].message.content)
         
@@ -251,10 +244,20 @@ Respond with your tool usage decision and reasoning."""
                 
                 print(f"🔧 Executing {tool_call.name} with args: {str(args)[:100]}...")
                 
-                if asyncio.iscoroutinefunction(tool.func):
-                    result = await tool.ainvoke(args)
-                else:
-                    result = tool.invoke(args)
+                # Always try async first for LangChain tools, then sync fallback
+                try:
+                    if hasattr(tool, 'ainvoke'):
+                        result = await tool.ainvoke(args)
+                    elif asyncio.iscoroutinefunction(tool.func):
+                        result = await tool.ainvoke(args)
+                    else:
+                        result = tool.invoke(args)
+                except Exception as sync_error:
+                    print(f"⚠️  Sync invocation failed, trying async: {sync_error}")
+                    try:
+                        result = await tool.ainvoke(args)
+                    except Exception as async_error:
+                        raise async_error
                     
                 print(f"✅ {tool_call.name} completed: {str(result)[:200]}...")
                 tool_results.append(result)
@@ -288,7 +291,6 @@ Please provide a comprehensive, well-structured response that incorporates the i
                 final_response = await acompletion(
                     model=self.model,
                     messages=[{"role": "user", "content": final_prompt}],
-                    base_url=self.base_url
                 )
                 final_content = final_response.choices[0].message.content
                 print(f"✅ Final response generated: {len(final_content)} chars")
@@ -344,7 +346,6 @@ def bind_tools_with_instructor(
     tools: List[BaseTool],
     parallel_tool_calls: bool = True,
     tool_choice: str = "auto",
-    base_url: str = "http://localhost:11435"
 ) -> ToolWrapperLLM:
     """
     Create a tool-wrapped LLM that mimics LangChain's .bind_tools() behavior.
@@ -356,7 +357,6 @@ def bind_tools_with_instructor(
         tools: List of LangChain tools to bind
         parallel_tool_calls: Whether to allow parallel tool calls
         tool_choice: Tool choice strategy
-        base_url: Base URL for the model API
     
     Returns:
         ToolWrapperLLM instance that can be used like a bound LangChain model
@@ -366,7 +366,6 @@ def bind_tools_with_instructor(
         tools=tools,
         parallel_tool_calls=parallel_tool_calls,
         tool_choice=tool_choice,
-        base_url=base_url
     )
 
 

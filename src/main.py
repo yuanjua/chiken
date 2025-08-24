@@ -24,8 +24,10 @@ if loaded_env:
 else:
     logger.info("No environment variables loaded from keychain at startup")
 
-# # Load environment variables
-# load_dotenv(override=True)
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(override=True)
 
 # Global shutdown event and main loop reference
 shutdown_event = asyncio.Event()

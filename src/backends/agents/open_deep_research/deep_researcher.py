@@ -73,23 +73,37 @@ def create_model_with_tools(model_name: str, tools, config_dict: dict, retries: 
     Returns:
         Model with tools bound, either natively or via wrapper
     """
-    # Check if this is gemma3:27b which doesn't support native tools
-    if "gemma3:27b" in model_name:
-        # Use tool wrapper for gemma3:27b
-        return bind_tools_with_instructor(
-            model=model_name,
-            tools=tools,
-            tool_choice="any",
-            base_url=config_dict.get("base_url", "http://localhost:11435")
-        )
-    else:
-        # Use native tool binding for other models
-        return (
+    # Try native binding first for all models
+    try:
+        print(f"🔧 Attempting native tool binding for {model_name}...")
+        native_model = (
             configurable_model
             .bind_tools(tools)
             .with_retry(stop_after_attempt=retries)
             .with_config(config_dict)
         )
+        print(f"✅ Native tool binding successful for {model_name}")
+        return native_model
+        
+    except Exception as native_error:
+        print(f"⚠️  Native tool binding failed for {model_name}: {native_error}")
+        print(f"🔄 Falling back to instructor-based tool wrapper...")
+        
+        # Fallback to tool wrapper
+        try:
+            wrapper_model = bind_tools_with_instructor(
+                model=model_name,
+                tools=tools,
+                tool_choice="any",
+            )
+            print(f"✅ Tool wrapper binding successful for {model_name}")
+            return wrapper_model
+            
+        except Exception as wrapper_error:
+            print(f"❌ Both native and wrapper binding failed for {model_name}")
+            print(f"   Native error: {native_error}")
+            print(f"   Wrapper error: {wrapper_error}")
+            raise wrapper_error
 
 async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Command[Literal["write_research_brief", "__end__"]]:
     """Analyze user messages and ask clarifying questions if the research scope is unclear.
@@ -112,21 +126,36 @@ async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Comman
     
     # Step 2: Prepare the model for structured clarification analysis
     messages = state["messages"]
-    model_config = {
-        "model": configurable.research_model,
-        "max_tokens": configurable.research_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.research_model, config),
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "tags": ["langsmith:nostream"]
-    }
-    
-    # Configure model with structured output and retry logic
-    clarification_model = (
-        configurable_model
-        .with_structured_output(ClarifyWithUser)
-        .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
-        .with_config(model_config)
-    )
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
+    clarification_model = None
+    if llm_from_config is not None:
+        try:
+            clarification_model = (
+                llm_from_config
+                .with_structured_output(ClarifyWithUser)
+                .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            )
+        except Exception:
+            clarification_model = None
+    if clarification_model is None:
+        # Normalize model name (strip provider prefix for provider-specific clients like Ollama)
+        provider = get_model_provider_for_model(configurable.research_model)
+        model_name_only = configurable.research_model
+        if provider and ":" in str(model_name_only):
+            model_name_only = str(model_name_only).split(":", 1)[1]
+        model_config = {
+            "model": model_name_only,
+            "max_tokens": configurable.research_model_max_tokens,
+            "api_key": get_api_key_for_model(configurable.research_model, config),
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+            "tags": ["langsmith:nostream"]
+        }
+        clarification_model = (
+            configurable_model
+            .with_structured_output(ClarifyWithUser)
+            .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            .with_config(model_config)
+        )
     
     # Step 3: Analyze whether clarification is needed
     prompt_content = clarify_with_user_instructions.format(
@@ -134,6 +163,27 @@ async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Comman
         date=get_today_str()
     )
     response = await clarification_model.ainvoke([HumanMessage(content=prompt_content)])
+    # Coerce or fallback if model didn't return structured output
+    try:
+        if response is None:
+            raise ValueError("Empty structured response")
+        # If it's a dict-like, try to construct ClarifyWithUser
+        if not hasattr(response, "need_clarification"):
+            if isinstance(response, dict):
+                response = ClarifyWithUser.model_validate(response)
+            else:
+                # Default: proceed without clarification
+                response = ClarifyWithUser(
+                    need_clarification=False,
+                    question="",
+                    verification="Acknowledged. Proceeding with research based on your request."
+                )
+    except Exception:
+        response = ClarifyWithUser(
+            need_clarification=False,
+            question="",
+            verification="Acknowledged. Proceeding with research based on your request."
+        )
     
     # Step 4: Route based on clarification analysis
     if response.need_clarification:
@@ -166,21 +216,35 @@ async def write_research_brief(state: AgentState, config: RunnableConfig) -> Com
     """
     # Step 1: Set up the research model for structured output
     configurable = Configuration.from_runnable_config(config)
-    research_model_config = {
-        "model": configurable.research_model,
-        "max_tokens": configurable.research_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.research_model, config),
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "tags": ["langsmith:nostream"]
-    }
-    
-    # Configure model for structured research question generation
-    research_model = (
-        configurable_model
-        .with_structured_output(ResearchQuestion)
-        .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
-        .with_config(research_model_config)
-    )
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
+    research_model = None
+    if llm_from_config is not None:
+        try:
+            research_model = (
+                llm_from_config
+                .with_structured_output(ResearchQuestion)
+                .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            )
+        except Exception:
+            research_model = None
+    if research_model is None:
+        provider = get_model_provider_for_model(configurable.research_model)
+        model_name_only = configurable.research_model
+        if provider and ":" in str(model_name_only):
+            model_name_only = str(model_name_only).split(":", 1)[1]
+        research_model_config = {
+            "model": model_name_only,
+            "max_tokens": configurable.research_model_max_tokens,
+            "api_key": get_api_key_for_model(configurable.research_model, config),
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+            "tags": ["langsmith:nostream"]
+        }
+        research_model = (
+            configurable_model
+            .with_structured_output(ResearchQuestion)
+            .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            .with_config(research_model_config)
+        )
     
     # Step 2: Generate structured research brief from user messages
     prompt_content = transform_messages_into_research_topic_prompt.format(
@@ -188,6 +252,20 @@ async def write_research_brief(state: AgentState, config: RunnableConfig) -> Com
         date=get_today_str()
     )
     response = await research_model.ainvoke([HumanMessage(content=prompt_content)])
+    # Coerce or fallback
+    try:
+        if response is None:
+            raise ValueError("Empty structured response")
+        if not hasattr(response, "research_brief"):
+            if isinstance(response, dict):
+                response = ResearchQuestion.model_validate(response)
+            else:
+                # Fallback: use last human message as brief
+                fallback_brief = get_buffer_string(state.get("messages", [])) or "Research the user's request."
+                response = ResearchQuestion(research_brief=fallback_brief)
+    except Exception:
+        fallback_brief = get_buffer_string(state.get("messages", [])) or "Research the user's request."
+        response = ResearchQuestion(research_brief=fallback_brief)
     
     # Step 3: Initialize supervisor with research brief and instructions
     supervisor_system_prompt = lead_researcher_prompt.format(
@@ -227,30 +305,42 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     """
     # Step 1: Configure the supervisor model with available tools
     configurable = Configuration.from_runnable_config(config)
-    research_model_config = {
-        "model": configurable.research_model,
-        "max_tokens": configurable.research_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.research_model, config),
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "tags": ["langsmith:nostream"]
-    }
-    
     # Available tools: research delegation, completion signaling, and strategic thinking
     lead_researcher_tools = [tool(ConductResearch), tool(ResearchComplete), think_tool]
     
-    # Configure model with tools, retry logic, and model settings
-    config_with_provider = {
-        **research_model_config,
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "base_url": "http://localhost:11435"
-    }
-    
-    research_model = create_model_with_tools(
-        model_name=configurable.research_model,
-        tools=lead_researcher_tools,
-        config_dict=config_with_provider,
-        retries=configurable.max_structured_output_retries
-    )
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
+    research_model = None
+    if llm_from_config is not None:
+        try:
+            research_model = (
+                llm_from_config
+                .bind_tools(lead_researcher_tools)
+                .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            )
+        except Exception:
+            research_model = None
+    if research_model is None:
+        provider = get_model_provider_for_model(configurable.research_model)
+        model_name_only = configurable.research_model
+        if provider and ":" in str(model_name_only):
+            model_name_only = str(model_name_only).split(":", 1)[1]
+        research_model_config = {
+            "model": model_name_only,
+            "max_tokens": configurable.research_model_max_tokens,
+            "api_key": get_api_key_for_model(configurable.research_model, config),
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+            "tags": ["langsmith:nostream"]
+        }
+        config_with_provider = {
+            **research_model_config,
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+        }
+        research_model = create_model_with_tools(
+            model_name=configurable.research_model,
+            tools=lead_researcher_tools,
+            config_dict=config_with_provider,
+            retries=configurable.max_structured_output_retries
+        )
     
     # Step 2: Generate supervisor response based on current context
     supervisor_messages = state.get("supervisor_messages", [])
@@ -432,33 +522,45 @@ async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[
         )
     
     # Step 2: Configure the researcher model with tools
-    research_model_config = {
-        "model": configurable.research_model,
-        "max_tokens": configurable.research_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.research_model, config),
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "tags": ["langsmith:nostream"]
-    }
-    
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
     # Prepare system prompt with MCP context if available
     researcher_prompt = research_system_prompt.format(
         mcp_prompt=configurable.mcp_prompt or "", 
         date=get_today_str()
     )
     
-    # Configure model with tools, retry logic, and settings
-    config_with_provider = {
-        **research_model_config,
-        "model_provider": get_model_provider_for_model(configurable.research_model),
-        "base_url": "http://localhost:11435"
-    }
-    
-    research_model = create_model_with_tools(
-        model_name=configurable.research_model,
-        tools=tools,
-        config_dict=config_with_provider,
-        retries=configurable.max_structured_output_retries
-    )
+    research_model = None
+    if llm_from_config is not None:
+        try:
+            research_model = (
+                llm_from_config
+                .bind_tools(tools)
+                .with_retry(stop_after_attempt=configurable.max_structured_output_retries)
+            )
+        except Exception:
+            research_model = None
+    if research_model is None:
+        provider = get_model_provider_for_model(configurable.research_model)
+        model_name_only = configurable.research_model
+        if provider and ":" in str(model_name_only):
+            model_name_only = str(model_name_only).split(":", 1)[1]
+        research_model_config = {
+            "model": model_name_only,
+            "max_tokens": configurable.research_model_max_tokens,
+            "api_key": get_api_key_for_model(configurable.research_model, config),
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+            "tags": ["langsmith:nostream"]
+        }
+        config_with_provider = {
+            **research_model_config,
+            "model_provider": get_model_provider_for_model(configurable.research_model),
+        }
+        research_model = create_model_with_tools(
+            model_name=configurable.research_model,
+            tools=tools,
+            config_dict=config_with_provider,
+            retries=configurable.max_structured_output_retries
+        )
     
     # Step 3: Generate researcher response with system context
     messages = [SystemMessage(content=researcher_prompt)] + researcher_messages
@@ -574,13 +676,21 @@ async def compress_research(state: ResearcherState, config: RunnableConfig):
     """
     # Step 1: Configure the compression model
     configurable = Configuration.from_runnable_config(config)
-    synthesizer_model = configurable_model.with_config({
-        "model": configurable.compression_model,
-        "max_tokens": configurable.compression_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.compression_model, config),
-        "model_provider": get_model_provider_for_model(configurable.compression_model),
-        "tags": ["langsmith:nostream"]
-    })
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
+    if llm_from_config is not None:
+        synthesizer_model = llm_from_config
+    else:
+        provider = get_model_provider_for_model(configurable.compression_model)
+        model_name_only = configurable.compression_model
+        if provider and ":" in str(model_name_only):
+            model_name_only = str(model_name_only).split(":", 1)[1]
+        synthesizer_model = configurable_model.with_config({
+            "model": model_name_only,
+            "max_tokens": configurable.compression_model_max_tokens,
+            "api_key": get_api_key_for_model(configurable.compression_model, config),
+            "model_provider": get_model_provider_for_model(configurable.compression_model),
+            "tags": ["langsmith:nostream"]
+        })
     
     # Step 2: Prepare messages for compression
     researcher_messages = state.get("researcher_messages", [])
@@ -675,13 +785,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
     
     # Step 2: Configure the final report generation model
     configurable = Configuration.from_runnable_config(config)
-    writer_model_config = {
-        "model": configurable.final_report_model,
-        "max_tokens": configurable.final_report_model_max_tokens,
-        "api_key": get_api_key_for_model(configurable.final_report_model, config),
-        "model_provider": get_model_provider_for_model(configurable.final_report_model),
-        "tags": ["langsmith:nostream"]
-    }
+    llm_from_config = (config.get("configurable", {}) or {}).get("llm_instance")
     
     # Step 3: Attempt report generation with token limit retry logic
     max_retries = 3
@@ -699,9 +803,28 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
             )
             
             # Generate the final report
-            final_report = await configurable_model.with_config(writer_model_config).ainvoke([
-                HumanMessage(content=final_report_prompt)
-            ])
+            if llm_from_config is not None:
+                try:
+                    final_report = await llm_from_config.ainvoke([
+                        HumanMessage(content=final_report_prompt)
+                    ])
+                except Exception:
+                    final_report = None
+            else:
+                provider = get_model_provider_for_model(configurable.final_report_model)
+                model_name_only = configurable.final_report_model
+                if provider and ":" in str(model_name_only):
+                    model_name_only = str(model_name_only).split(":", 1)[1]
+                writer_model_config = {
+                    "model": model_name_only,
+                    "max_tokens": configurable.final_report_model_max_tokens,
+                    "api_key": get_api_key_for_model(configurable.final_report_model, config),
+                    "model_provider": get_model_provider_for_model(configurable.final_report_model),
+                    "tags": ["langsmith:nostream"]
+                }
+                final_report = await configurable_model.with_config(writer_model_config).ainvoke([
+                    HumanMessage(content=final_report_prompt)
+                ])
             
             # Return successful report generation
             return {

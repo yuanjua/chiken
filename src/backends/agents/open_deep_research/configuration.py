@@ -15,6 +15,7 @@ class SearchAPI(Enum):
     OPENAI = "openai"
     TAVILY = "tavily"
     DUCKDUCKGO = "duckduckgo"
+    DOCUMENT_SEARCH = "document_search"
     NONE = "none"
 
 class MCPConfig(BaseModel):
@@ -77,13 +78,14 @@ class Configuration(BaseModel):
     )
     # Research Configuration
     search_api: SearchAPI = Field(
-        default=SearchAPI.DUCKDUCKGO,
+        default=SearchAPI.DOCUMENT_SEARCH,
         metadata={
             "x_oap_ui_config": {
                 "type": "select",
-                "default": "duckduckgo",
+                "default": "document_search",
                 "description": "Search API to use for research. NOTE: Make sure your Researcher Model supports the selected search API.",
                 "options": [
+                    {"label": "Document Search (Knowledge Base)", "value": SearchAPI.DOCUMENT_SEARCH.value},
                     {"label": "DuckDuckGo", "value": SearchAPI.DUCKDUCKGO.value},
                     {"label": "Tavily", "value": SearchAPI.TAVILY.value},
                     {"label": "OpenAI Native Web Search", "value": SearchAPI.OPENAI.value},
