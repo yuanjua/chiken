@@ -7,12 +7,15 @@ import { selectedAgentAtom } from "@/store/chatAtoms";
 import { isBackendReadyAtom } from "@/store/uiAtoms";
 import { listSessions, convertBackendSessionsToMap } from "@/lib/api-client";
 import { tauriService } from "@/lib/tauri-service";
+import { availableAgentTypesAtom } from "@/store/chatAtoms";
+import { getAgentTypes } from "@/lib/api-client";
 
 export function SessionInitializer() {
   const [sessionsLoaded, setSessionsLoaded] = useAtom(sessionsLoadedAtom);
   const [chatSessionsMap, setChatSessionsMap] = useAtom(chatSessionsMapAtom);
   const [isBackendReady] = useAtom(isBackendReadyAtom);
   const [, setSelectedAgent] = useAtom(selectedAgentAtom);
+  const [, setAvailableAgents] = useAtom(availableAgentTypesAtom);
 
   useEffect(() => {
     async function loadAndSyncSessions() {
@@ -30,6 +33,16 @@ export function SessionInitializer() {
 
       console.log("🔄 SessionInitializer: Loading sessions (backend ready)");
       try {
+        // Load available agent types
+        try {
+          const agents = await getAgentTypes();
+          if (Array.isArray(agents) && agents.length > 0) {
+            setAvailableAgents(agents);
+          }
+        } catch (e) {
+          console.warn("Failed to load agent types; defaulting to built-ins", e);
+        }
+
         const response = await listSessions();
         const backendSessions = response.sessions || [];
 
