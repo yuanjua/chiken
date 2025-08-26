@@ -385,7 +385,7 @@ async def meta_search_papers(
             "openalex": openalex_search,
         }
 
-        if "all" in sources or not sources:
+        if not sources or "all" in sources :
             use_sources = list(provider_funcs.keys())
         else:
             use_sources = sources

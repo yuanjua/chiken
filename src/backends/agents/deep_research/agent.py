@@ -118,6 +118,7 @@ class DeepResearchAgent(BaseAgent):
                 final_report = report_node_output.get("final_report")
 
             if final_report:
+                yield {"type": "content", "data": "\n"}
                 yield {"type": "content", "data": final_report}
 
         except Exception as e:

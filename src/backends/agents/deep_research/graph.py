@@ -601,7 +601,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
         try:
             final_report_prompt = final_report_generation_prompt.format(
                 research_brief=state.get("research_brief", ""),
-                messages="",  # get_buffer_string(state.get("messages", [])), # Remove the full message history to focus the LLM
+                messages=get_buffer_string(state.get("messages", [])),
                 findings=findings,
                 date=get_today_str()
             )
