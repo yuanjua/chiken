@@ -46,7 +46,7 @@ The local Chat agent is not optimized for calling tools yet. It is fixed to call
 
 ### 4. Chat with Local LLMs
 
-There are some advanced models that support **long context windows**, e.g. gemma3, qwen3, which is important for literature understanding. In the setting page, set larger context size as large as your computer can handle.
+There are some advanced models that support **long context windows**, e.g. gemma3, qwen3, which is important for literature understanding. In the setting page, set larger context size as large as your computer can handle. See also [Built-in Agents: Chat, Search, Deep Research](./built-in-agents.md).
 
 ![](../assets/example-mention-doc.gif)
 
