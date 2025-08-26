@@ -401,7 +401,7 @@ async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[
 
 
 async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Command[Literal["researcher", "compress_research"]]:
-    """Execute tools called by the researcher with ENHANCED duplicate prevention."""
+    """Execute tools called by the researcher with robust duplicate prevention based on successful execution."""
     configurable = Configuration.from_runnable_config(config)
     researcher_messages = state.get("researcher_messages", [])
     most_recent_message = researcher_messages[-1]
@@ -416,37 +416,44 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
         for tool in tools
     }
     
-    # ENHANCED DUPLICATE DETECTION for your 3 tools
-    tool_calls = most_recent_message.tool_calls
-    
-    # Build history of prior calls (simplified for your tools)
+    # Step 1: Identify the IDs of all tool calls that were successfully executed (i.e., have a ToolMessage)
+    executed_tool_call_ids = {
+        getattr(msg, "tool_call_id", "") 
+        for msg in researcher_messages[:-1] 
+        if getattr(msg, "type", "") == "tool"
+    }
+
+    # Step 2: Build a history of prior SUCCESSFUL calls by looking at AIMessages that have a corresponding ToolMessage
     prior_calls = set()
     tool_call_counts = defaultdict(int)
     
     for prior_msg in researcher_messages[:-1]:
         if getattr(prior_msg, "type", "") == "ai" and getattr(prior_msg, "tool_calls", None):
             for prior_call in prior_msg.tool_calls:
-                tool_name = prior_call.get("name", "unknown")
-                args = prior_call.get("args") or {}
-                
-                # Create exact match key
-                exact_key = (tool_name, json.dumps(args, sort_keys=True))
-                
-                # For search tools, also normalize query strings
-                if tool_name in ["web_meta_search_tool", "search_documents"]:
-                    normalized_args = {}
-                    for k, v in args.items():
-                        if isinstance(v, str):
-                            normalized_args[k.lower().strip()] = v.lower().strip()
-                        else:
-                            normalized_args[k.lower().strip()] = v
-                    normalized_key = (tool_name.lower(), json.dumps(normalized_args, sort_keys=True))
-                    prior_calls.add(normalized_key)
-                
-                prior_calls.add(exact_key)
-                tool_call_counts[tool_name] += 1
+                # Only consider it a "prior call" if it was actually executed
+                if prior_call.get("id") in executed_tool_call_ids:
+                    tool_name = prior_call.get("name", "unknown")
+                    args = prior_call.get("args", {})
+                    
+                    tool_call_counts[tool_name] += 1
+                    
+                    # Add exact key for de-duplication
+                    exact_key = (tool_name, json.dumps(args, sort_keys=True))
+                    prior_calls.add(exact_key)
 
-    # Filter duplicates and apply rate limiting
+                    # Add normalized key for search tools
+                    if tool_name in ["web_meta_search_tool", "search_documents"]:
+                        normalized_args = {}
+                        for k, v in args.items():
+                            if isinstance(v, str):
+                                normalized_args[k.lower().strip()] = v.lower().strip()
+                            else:
+                                normalized_args[k.lower().strip()] = v
+                        normalized_key = (tool_name.lower(), json.dumps(normalized_args, sort_keys=True))
+                        prior_calls.add(normalized_key)
+
+    # Step 3: Filter the current batch of proposed tool calls against the history of successful ones
+    tool_calls = most_recent_message.tool_calls
     seen_current = set()
     exec_calls = []
     duplicate_outputs = []
@@ -456,47 +463,42 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
         tool_name = tc.get("name", "unknown")
         args = tc.get("args") or {}
         
-        # Create exact key
+        # Create exact key for the current call
         exact_key = (tool_name, json.dumps(args, sort_keys=True))
         
         # Check for exact duplicates
         if exact_key in prior_calls or exact_key in seen_current:
             logger.debug(f"Skipping exact duplicate: {tool_name} with args {args}")
             duplicate_outputs.append(ToolMessage(
-                content=f"🚫 Duplicate call skipped: {tool_name} was already called with identical arguments. Use think_tool to reflect on the results and plan different searches.",
+                content=f"🚫 Duplicate call skipped: This exact tool call was already successfully executed.",
                 name=tool_name,
-                tool_call_id=tc.get("id", "dup_exact")
+                tool_call_id=tc.get("id")
             ))
             continue
             
         # For search tools, check normalized duplicates
         if tool_name in ["web_meta_search_tool", "search_documents"]:
-            normalized_args = {}
-            for k, v in args.items():
-                if isinstance(v, str):
-                    normalized_args[k.lower().strip()] = v.lower().strip()
-                else:
-                    normalized_args[k.lower().strip()] = v
+            normalized_args = {k.lower().strip(): v.lower().strip() if isinstance(v, str) else v for k, v in args.items()}
             normalized_key = (tool_name.lower(), json.dumps(normalized_args, sort_keys=True))
             
             if normalized_key in prior_calls or normalized_key in seen_current:
                 logger.debug(f"Skipping similar search: {tool_name} with normalized args {normalized_args}")
                 duplicate_outputs.append(ToolMessage(
-                    content=f"🚫 Similar search skipped: {tool_name} was already called with very similar query. Use think_tool to refine your search strategy.",
+                    content=f"🚫 Similar search skipped: A very similar query was already successfully executed.",
                     name=tool_name,
-                    tool_call_id=tc.get("id", "dup_similar")
+                    tool_call_id=tc.get("id")
                 ))
                 continue
             seen_current.add(normalized_key)
         
-        # Apply rate limiting  
+        # Apply rate limiting
         total_calls_for_tool = tool_call_counts[tool_name] + current_tool_counts[tool_name]
-        if total_calls_for_tool >= 4:  # Allow more calls for research tools
+        if total_calls_for_tool >= 4:
             logger.debug(f"Rate limiting {tool_name}: {total_calls_for_tool} calls already made")
             duplicate_outputs.append(ToolMessage(
-                content=f"🚦 Rate limit reached: {tool_name} has been called {total_calls_for_tool} times. Try a different tool or approach.",
+                content=f"🚦 Rate limit reached for {tool_name}. Try a different tool or finalize the research.",
                 name=tool_name,
-                tool_call_id=tc.get("id", "rate_limited")
+                tool_call_id=tc.get("id")
             ))
             continue
         
@@ -505,45 +507,32 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
         current_tool_counts[tool_name] += 1
         exec_calls.append(tc)
 
-    # Execute approved tools
+    # Step 4: Execute the approved, non-duplicate tool calls
     async def execute_tool_safely(tool, args, config):
         try:
             return await tool.ainvoke(args, config)
         except Exception as e:
             return f"Error executing tool: {str(e)}"
 
-    tool_execution_tasks = [
-        execute_tool_safely(tools_by_name[tc["name"]], tc["args"], config) for tc in exec_calls
-    ]
+    tool_execution_tasks = [execute_tool_safely(tools_by_name[tc["name"]], tc["args"], config) for tc in exec_calls]
     observations = await asyncio.gather(*tool_execution_tasks) if tool_execution_tasks else []
     
-    # Create tool messages
     tool_outputs = [
         ToolMessage(
             content=str(observation),
             name=tool_call["name"],
-            tool_call_id=tool_call.get("id", "exec")
-        ) 
-        for observation, tool_call in zip(observations, exec_calls)
+            tool_call_id=tool_call.get("id")
+        ) for observation, tool_call in zip(observations, exec_calls)
     ] + duplicate_outputs
         
     # Check exit conditions
     exceeded_iterations = state.get("tool_call_iterations", 0) >= configurable.max_react_tool_calls
-    research_complete_called = any(
-        tool_call["name"] == "ResearchComplete" 
-        for tool_call in most_recent_message.tool_calls
-    )
+    research_complete_called = any(tool_call["name"] == "ResearchComplete" for tool_call in most_recent_message.tool_calls)
     
     if exceeded_iterations or research_complete_called:
-        return Command(
-            goto="compress_research",
-            update={"researcher_messages": tool_outputs}
-        )
+        return Command(goto="compress_research", update={"researcher_messages": tool_outputs})
     
-    return Command(
-        goto="researcher",
-        update={"researcher_messages": tool_outputs}
-    )
+    return Command(goto="researcher", update={"researcher_messages": tool_outputs})
 
 
 async def compress_research(state: ResearcherState, config: RunnableConfig):
@@ -612,7 +601,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
         try:
             final_report_prompt = final_report_generation_prompt.format(
                 research_brief=state.get("research_brief", ""),
-                messages=get_buffer_string(state.get("messages", [])),
+                messages="",  # get_buffer_string(state.get("messages", [])), # Remove the full message history to focus the LLM
                 findings=findings,
                 date=get_today_str()
             )

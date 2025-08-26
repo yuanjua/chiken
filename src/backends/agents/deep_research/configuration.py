@@ -11,15 +11,15 @@ class Configuration(BaseModel):
     # Core research parameters
     allow_clarification: bool = Field(default=True)
     max_concurrent_research_units: int = Field(default=3) 
-    max_researcher_iterations: int = Field(default=6)
+    max_researcher_iterations: int = Field(default=10)
     max_react_tool_calls: int = Field(default=15)
     max_structured_output_retries: int = Field(default=3)
     
     # Token limits for different model tasks
     clarification_max_tokens: int = Field(default=2048)
     research_brief_max_tokens: int = Field(default=4096)
-    compression_max_tokens: int = Field(default=32768)
-    final_report_max_tokens: int = Field(default=20000)
+    compression_max_tokens: int = Field(default=8192)
+    final_report_max_tokens: int = Field(default=12000)
     tool_wrapper_max_tokens: int = Field(default=4096)
 
     @classmethod
