@@ -11,7 +11,7 @@ ChiKen chat interface offers three agents to interact with your research: **Chat
 
 ## 💫 Quick Start
 
-Download and install ChiKen from [Releases](https://github.com/yuanjua/chiken/releases) for your platform. PDF and plain text work out of the box; other formats require [Pandoc](https://pandoc.org/) 2+.
+Download and install ChiKen from [Releases](https://github.com/yuanjua/chiken/releases) for your platform. PDF and plain text work out of the box; other formats require [Pandoc](https://pandoc.org/) 2+. [Zotero](https://www.zotero.org/) 7+ is also required for enabling local API.
 
 We recommend [Ollama](https://ollama.com/) for local LLMs—easy setup for chat and embeddings. Works well with `ollama/gemma3:27b`. For now this is the only recommended and tested model. You can then expose your knowledge bases to advanced LLM clients like Claude Desktop through the built-in MCP server.
 
