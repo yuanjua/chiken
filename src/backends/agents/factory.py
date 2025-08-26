@@ -41,15 +41,6 @@ async def create_agent(agent_type: str, user_config: UserConfig, checkpointer: A
             from .deep_research.agent import DeepResearchAgent
 
             return await DeepResearchAgent.create(user_config, checkpointer)
-        elif agent_type_lower == "open_deep_research":
-            from .open_deep_research.agent import OpenDeepResearchAgent
-
-            return await OpenDeepResearchAgent.create(user_config, checkpointer)
-        elif agent_type_lower == "deep_research_v2":
-            # Alias for the new deep_research agent
-            from .deep_research.agent import DeepResearchAgent
-
-            return await DeepResearchAgent.create(user_config, checkpointer)
 
         else:
             raise ValueError(f"Unknown agent type: {agent_type}")

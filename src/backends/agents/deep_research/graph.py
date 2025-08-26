@@ -1,6 +1,5 @@
 """
-Enhanced Deep Research Graph - Hybrid Architecture
-Combines the sophisticated multi-stage workflow of the original with enhanced duplicate prevention.
+Modified from https://github.com/langchain-ai/open_deep_research/blob/main/src/open_deep_research/deep_researcher.py
 """
 
 import asyncio
@@ -50,7 +49,7 @@ from .utils import (
     is_token_limit_exceeded,
 )
 from .tool_wrapper import create_model_with_tools
-
+from .utils import think_tool
 
 # Helper function to get LLM for specific tasks
 def get_llm_for_task(config: RunnableConfig, schema=None, max_tokens=None, retries=3):
@@ -204,7 +203,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
     """Lead research supervisor that plans research strategy and delegates to researchers."""
     configurable = Configuration.from_runnable_config(config)
     # Do not expose think_tool to the LLM; we'll inject reflections deterministically in the graph
-    lead_researcher_tools = [tool(ConductResearch), tool(ResearchComplete)]
+    lead_researcher_tools = [tool(ConductResearch), tool(ResearchComplete), think_tool]
     
     llm = config.get("configurable", {}).get("llm_instance")
     if not llm:
@@ -231,25 +230,35 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
 
 
 async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Command[Literal["supervisor", "__end__"]]:
-    """Execute tools called by the supervisor with enhanced duplicate prevention."""
+    """Execute tools called by the supervisor, including research delegation and strategic thinking.
+    
+    This function handles three types of supervisor tool calls:
+    1. think_tool - Strategic reflection that continues the conversation
+    2. ConductResearch - Delegates research tasks to sub-researchers
+    3. ResearchComplete - Signals completion of research phase
+    
+    Args:
+        state: Current supervisor state with messages and iteration count
+        config: Runtime configuration with research limits and model settings
+        
+    Returns:
+        Command to either continue supervision loop or end research phase
+    """
+    # Step 1: Extract current state and check exit conditions
     configurable = Configuration.from_runnable_config(config)
     supervisor_messages = state.get("supervisor_messages", [])
     research_iterations = state.get("research_iterations", 0)
     most_recent_message = supervisor_messages[-1]
-
-    # Ignore any LLM-emitted think_tool calls; reflection is graph-managed
-    filtered_tool_calls = [
-        tc for tc in (most_recent_message.tool_calls or []) if tc.get("name") != "think_tool"
-    ]
     
-    # Exit conditions
+    # Define exit criteria for research phase
     exceeded_allowed_iterations = research_iterations > configurable.max_researcher_iterations
-    no_tool_calls = not filtered_tool_calls
+    no_tool_calls = not most_recent_message.tool_calls
     research_complete_tool_call = any(
         tool_call["name"] == "ResearchComplete" 
-        for tool_call in filtered_tool_calls
+        for tool_call in most_recent_message.tool_calls
     )
     
+    # Exit if any termination condition is met
     if exceeded_allowed_iterations or no_tool_calls or research_complete_tool_call:
         return Command(
             goto=END,
@@ -259,21 +268,37 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
             }
         )
     
-    # Process tool calls (excluding think_tool)
+    # Step 2: Process all tool calls together (both think_tool and ConductResearch)
     all_tool_messages = []
     update_payload = {"supervisor_messages": []}
     
-    # Handle ConductResearch calls with parallel execution
+    # Handle think_tool calls (strategic reflection)
+    think_tool_calls = [
+        tool_call for tool_call in most_recent_message.tool_calls 
+        if tool_call["name"] == "think_tool"
+    ]
+    
+    for tool_call in think_tool_calls:
+        reflection_content = tool_call["args"]["reflection"]
+        all_tool_messages.append(ToolMessage(
+            content=f"Reflection recorded: {reflection_content}",
+            name="think_tool",
+            tool_call_id=tool_call["id"]
+        ))
+    
+    # Handle ConductResearch calls (research delegation)
     conduct_research_calls = [
-        tool_call for tool_call in filtered_tool_calls 
+        tool_call for tool_call in most_recent_message.tool_calls 
         if tool_call["name"] == "ConductResearch"
     ]
     
     if conduct_research_calls:
         try:
+            # Limit concurrent research units to prevent resource exhaustion
             allowed_conduct_research_calls = conduct_research_calls[:configurable.max_concurrent_research_units]
             overflow_conduct_research_calls = conduct_research_calls[configurable.max_concurrent_research_units:]
             
+            # Execute research tasks in parallel
             research_tasks = [
                 researcher_subgraph.ainvoke({
                     "researcher_messages": [
@@ -289,20 +314,20 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
             # Create tool messages with research results
             for observation, tool_call in zip(tool_results, allowed_conduct_research_calls):
                 all_tool_messages.append(ToolMessage(
-                    content=observation.get("compressed_research", "Error synthesizing research report"),
+                    content=observation.get("compressed_research", "Error synthesizing research report: Maximum retries exceeded"),
                     name=tool_call["name"],
                     tool_call_id=tool_call["id"]
                 ))
             
-            # Handle overflow
+            # Handle overflow research calls with error messages
             for overflow_call in overflow_conduct_research_calls:
                 all_tool_messages.append(ToolMessage(
-                    content=f"Error: Exceeded maximum concurrent research units ({configurable.max_concurrent_research_units}). Please try again with fewer units.",
+                    content=f"Error: Did not run this research as you have already exceeded the maximum number of concurrent research units. Please try again with {configurable.max_concurrent_research_units} or fewer research units.",
                     name="ConductResearch",
                     tool_call_id=overflow_call["id"]
                 ))
             
-            # Aggregate raw notes
+            # Aggregate raw notes from all research results
             raw_notes_concat = "\n".join([
                 "\n".join(observation.get("raw_notes", [])) 
                 for observation in tool_results
@@ -310,30 +335,11 @@ async def supervisor_tools(state: SupervisorState, config: RunnableConfig) -> Co
             
             if raw_notes_concat:
                 update_payload["raw_notes"] = [raw_notes_concat]
-
-            # Inject deterministic supervisor reflection after delegation results
-            if allowed_conduct_research_calls:
-                thinking_content = f"""I delegated {len(allowed_conduct_research_calls)} research task(s). Let me analyze the results and plan next steps:
-
-Results Summary:
-{chr(10).join([f"- ConductResearch: {str(msg.content)[:200]}..." for msg in all_tool_messages if msg.name != "think_tool"])}
-
-Key questions:
-1. What gaps remain in the findings?
-2. Do we need additional targeted research, or can we conclude?
-3. What specific subtopics warrant deeper investigation?
-
-Next action: Based on this analysis, I'll either delegate further focused research or mark research as complete when confident."""
-
-                all_tool_messages.append(ToolMessage(
-                    content=thinking_content,
-                    name="think_tool",
-                    tool_call_id="auto_think_supervisor"
-                ))
                 
         except Exception as e:
-            logger.error(f"Error in research execution: {e}")
-            if is_token_limit_exceeded(str(e), "user_model"):
+            # Handle research execution errors
+            if is_token_limit_exceeded(e, configurable.research_model) or True:
+                # Token limit exceeded or other error - end research phase
                 return Command(
                     goto=END,
                     update={
@@ -342,6 +348,7 @@ Next action: Based on this analysis, I'll either delegate further focused resear
                     }
                 )
     
+    # Step 3: Return command with all tool results
     update_payload["supervisor_messages"] = all_tool_messages
     return Command(
         goto="supervisor",
@@ -517,28 +524,7 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
         ) 
         for observation, tool_call in zip(observations, exec_calls)
     ] + duplicate_outputs
-    
-    # AUTO-INJECT DETERMINISTIC THINKING after tool execution (focus on research)
-    if tool_outputs and exec_calls:
-        thinking_content = f"""I just executed {len(exec_calls)} research tools. Let me analyze what I found:
-
-Results Summary:
-{chr(10).join([f"- {msg.name}: {str(msg.content)[:200]}..." for msg in tool_outputs if msg.name != "think_tool"])}
-
-Key questions:
-1. What useful information did I gather?
-2. What's still missing for a complete answer?
-3. Should I search with different terms or am I ready to conclude?
-
-Next action: Based on this analysis, I'll either make more targeted searches or finish research."""
         
-        # Add deterministic thinking message
-        tool_outputs.append(ToolMessage(
-            content=thinking_content,
-            name="think_tool", 
-            tool_call_id="auto_think"
-        ))
-    
     # Check exit conditions
     exceeded_iterations = state.get("tool_call_iterations", 0) >= configurable.max_react_tool_calls
     research_complete_called = any(
@@ -561,7 +547,7 @@ Next action: Based on this analysis, I'll either make more targeted searches or 
 async def compress_research(state: ResearcherState, config: RunnableConfig):
     """Compress and synthesize research findings into a concise, structured summary."""
     configurable = Configuration.from_runnable_config(config)
-    synthesizer_model = get_llm_for_task(config, max_tokens=8192)
+    synthesizer_model = get_llm_for_task(config, max_tokens=8192 * 2)
     
     researcher_messages = state.get("researcher_messages", [])
     researcher_messages.append(HumanMessage(content=compress_research_simple_human_message))
@@ -629,7 +615,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
                 date=get_today_str()
             )
             
-            report_model = get_llm_for_task(config, max_tokens=10000)
+            report_model = get_llm_for_task(config, max_tokens=20000)
             final_report = await report_model.ainvoke([
                 HumanMessage(content=final_report_prompt)
             ])

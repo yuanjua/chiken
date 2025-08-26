@@ -7,39 +7,39 @@ from langchain_core.tools import BaseTool, tool
 from loguru import logger
 
 from .tools import tools_list as custom_tools
-
+from .state import ResearchComplete
 
 def get_today_str() -> str:
     """Get today's date as a string."""
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
-@tool
-async def think_tool(
-    thoughts: str,
-) -> str:
-    """
-    Use this tool to think and reflect on your research process.
-    
-    This tool helps you:
-    - Analyze what information you've gathered so far
-    - Plan your next research steps
-    - Reflect on whether you have enough information to answer the question
-    - Decide if you should continue searching or provide your findings
-    
+@tool(description="Strategic reflection tool for research planning")
+def think_tool(reflection: str) -> str:
+    """Tool for strategic reflection on research progress and decision-making.
+
+    Use this tool after each search to analyze results and plan next steps systematically.
+    This creates a deliberate pause in the research workflow for quality decision-making.
+
+    When to use:
+    - After receiving search results: What key information did I find?
+    - Before deciding next steps: Do I have enough to answer comprehensively?
+    - When assessing research gaps: What specific information am I still missing?
+    - Before concluding research: Can I provide a complete answer now?
+
+    Reflection should address:
+    1. Analysis of current findings - What concrete information have I gathered?
+    2. Gap assessment - What crucial information is still missing?
+    3. Quality evaluation - Do I have sufficient evidence/examples for a good answer?
+    4. Strategic decision - Should I continue searching or provide my answer?
+
     Args:
-        thoughts: Your thoughts about the research progress, what you've found, 
-                 what's missing, and what you should do next
-    
+        reflection: Your detailed reflection on research progress, findings, gaps, and next steps
+
     Returns:
-        Confirmation that your thoughts have been recorded
+        Confirmation that reflection was recorded for decision-making
     """
-    logger.debug(f"Researcher thinking: {thoughts}")
-    
-    return (
-        "I've recorded your thoughts. Based on your reflection, proceed with your next action. "
-        "Remember to avoid repeating the same searches and to move towards providing a comprehensive answer."
-    )
+    return f"Reflection recorded: {reflection}"
 
 
 async def get_all_tools(config: RunnableConfig = None) -> List[BaseTool]:
@@ -49,15 +49,9 @@ async def get_all_tools(config: RunnableConfig = None) -> List[BaseTool]:
     Returns:
         List of research tools only (think_tool handled deterministically)
     """
-    tools = []
+    tools = [tool(ResearchComplete), think_tool]
     
-    # Add your custom research tools: web_meta_search_tool, search_documents, get_document_by_id
     tools.extend(custom_tools)
-    
-    # NOTE: think_tool is handled deterministically in the researcher_tools function
-    # so we don't include it in the tool list to avoid confusion
-    
-    logger.debug(f"✅ Loaded {len(tools)} research tools: {[getattr(t, 'name', 'unknown') for t in tools]}")
     
     return tools
 
