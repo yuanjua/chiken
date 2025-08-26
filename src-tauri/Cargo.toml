@@ -1,6 +1,6 @@
 [package]
 name = "app"
-version = "0.1.3"
+version = "0.2.0"
 description = "ChiKen!"
 authors = ["yuanjua"]
 license = "MIT"

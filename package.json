@@ -1,6 +1,6 @@
 {
   "name": "ChiKen",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": false,
   "packageManager": "pnpm@9.15.4",
   "scripts": {

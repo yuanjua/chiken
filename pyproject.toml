@@ -1,6 +1,6 @@
 [project]
 name = "chiken"
-version = "0.1.3"
+version = "0.2.0"
 description = "ChiKen!"
 readme = "README.md"
 requires-python = ">=3.11"
