@@ -99,7 +99,7 @@ export function SearchTableDialog({ open, onOpenChange, headers, records }: Prop
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" onClick={handleCopyMarkdown}>{t("copyMarkdown")}</Button>
           <Button variant="secondary" size="sm" onClick={handleCopyCsv}>{t("copyCsv")}</Button>
-          <Button variant="secondary" size="sm" onClick={() => toast({ title: t("inDevelopment"), description: t("addToZoteroSoon") })}>{t("addToZotero")}</Button>
+          {/* <Button variant="secondary" size="sm" onClick={() => toast({ title: t("inDevelopment"), description: t("addToZoteroSoon") })}>{t("addToZotero")}</Button> */}
         </div>
       </DialogContent>
     </Dialog>

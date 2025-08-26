@@ -28,5 +28,17 @@
   "saveError": "Save Error",
   "saveConfigFailed": "Failed to save configuration: {error}",
   "saving": "Saving...",
-  "saveConfiguration": "Save Configuration"
+  "saveConfiguration": "Save Configuration",
+  "export": "Export",
+  "copied": "Copied",
+  "tableCopiedMarkdown": "Table copied as Markdown",
+  "tableCopiedCsv": "Table copied as CSV",
+  "exportTable": "Export Table",
+  "title": "Title",
+  "relevanceAtLeast": "Relevance ≥",
+  "copyMarkdown": "Copy Markdown",
+  "copyCsv": "Copy CSV",
+  "inDevelopment": "In Development",
+  "addToZoteroSoon": "Adding to Zotero collection coming soon",
+  "addToZotero": "Add to Zotero Collection"
 }

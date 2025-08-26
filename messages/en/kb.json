@@ -21,7 +21,7 @@
     "searchPlaceholder": "Semantic search...",
     "query": "Query",
     "results": "Search Results ({count})",
-    "exportAsPrompt": "Export as Prompt",
+    "exportAsPrompt": "Copy",
     "unknownKb": "Unknown KB",
     "page": "Page",
     "view": "View →",
