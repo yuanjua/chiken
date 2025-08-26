@@ -203,7 +203,7 @@ export function InputControls({ isLoading }: InputControlsProps) {
   };
 
   return (
-    <div className="flex items-end gap-2 relative">
+    <div className="flex items-end gap-0 relative">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -319,7 +319,7 @@ export function InputControls({ isLoading }: InputControlsProps) {
         type="button"
         variant="ghost"
         size="sm"
-        className="shrink-0 h-9 w-9 p-0 border-0"
+        className="shrink-0 h-9 w-9 pr-3 border-0"
         disabled={isLoading || isUploading}
         onClick={handleFileUpload}
         title={`Upload PDF to ${targetKnowledgeBaseName}`}
@@ -332,11 +332,13 @@ export function InputControls({ isLoading }: InputControlsProps) {
         value={selectedAgent}
         onValueChange={(value: string) => setSelectedAgent(value)}
       >
-        <SelectTrigger className="w-9 h-9 border-0 p-0" aria-label={selectedAgent}>
+        <SelectTrigger className="w-10 h-9 border-0 p-0 shadow-none ml-2" aria-label={selectedAgent}>
           {selectedAgent === "chat" && (
             <MessageCircleMore className="h-4 w-4" />
           )}
-          {selectedAgent === "search_graph" && <Globe className="h-4 w-4" />}
+          {selectedAgent === "search_graph" && (
+            <Globe className="h-4 w-4" />
+          )}
           {selectedAgent === "deep_research" && (
             <Search className="h-4 w-4" />
           )}
