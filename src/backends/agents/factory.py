@@ -1,7 +1,7 @@
 """
 Agent Factory
 
-Creates agents based on type. Simplified to remove research agent logic.
+Creates agents based on type.
 """
 
 from typing import Any
@@ -37,6 +37,10 @@ async def create_agent(agent_type: str, user_config: UserConfig, checkpointer: A
             from .search_graph.agent import SearchGraphAgent
 
             return await SearchGraphAgent.create(user_config, checkpointer)
+        elif agent_type_lower == "deep_research":
+            from .deep_research.agent import DeepResearchAgent
+
+            return await DeepResearchAgent.create(user_config, checkpointer)
 
         else:
             raise ValueError(f"Unknown agent type: {agent_type}")
@@ -68,4 +72,4 @@ class AgentFactory:
 
 def get_supported_agent_types() -> list[str]:
     """Get list of all supported agent types."""
-    return ["chat", "search_graph"]
+    return ["chat", "search_graph", "deep_research", "open_deep_research", "deep_research_v2"]

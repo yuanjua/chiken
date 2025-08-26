@@ -21,7 +21,7 @@
     "searchPlaceholder": "语义搜索...",
     "query": "检索",
     "results": "检索结果（{count}）",
-    "exportAsPrompt": "导出为 Prompt",
+    "exportAsPrompt": "复制",
     "unknownKb": "未知知识库",
     "page": "页",
     "view": "查看 →",

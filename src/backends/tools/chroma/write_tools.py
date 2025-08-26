@@ -8,8 +8,8 @@ from typing import Any
 
 from loguru import logger
 
-from ..rag.db import add_documents_to_kb
-from .utils import get_active_knowledge_bases
+from ...rag.db import add_documents_to_kb
+from ..utils import get_active_knowledge_bases
 
 # ==============================================================================
 # Plan for Search Agent

@@ -137,8 +137,7 @@ class ManagerSingleton:
         if cls._session_manager:
             cls._session_manager.user_config = cls._user_config
             # Clear agent cache to force recreation with new config
-            cls._session_manager.agents.clear()
-            logger.info("Updated user config, saved to database, and cleared agent cache")
+            logger.info("Updated user config, saved to database")
 
         return cls._user_config
 
@@ -167,9 +166,7 @@ class ManagerSingleton:
         # Update session manager's user config reference if it exists
         if cls._session_manager:
             cls._session_manager.user_config = cls._user_config
-            # Clear agent cache to force recreation with new config
-            cls._session_manager.agents.clear()
-            logger.info("Reloaded user config from database and cleared agent cache")
+            logger.info("Reloaded user config from database")
 
         return cls._user_config
 

@@ -8,9 +8,9 @@ from typing import Any
 
 from loguru import logger
 
-from ..rag.db import get_database_manager
-from ..rag.service import RAGService
-from .utils import get_active_knowledge_bases
+from ...rag.db import get_database_manager
+from ...rag.service import RAGService
+from ..utils import get_active_knowledge_bases
 
 # ==============================================================================
 # Collection Information Tools

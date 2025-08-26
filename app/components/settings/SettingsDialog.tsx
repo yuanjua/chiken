@@ -168,7 +168,7 @@ export function SettingsDialog({
                 <Slider
                   value={[selectedModel.numCtx || 4096]}
                   onValueChange={handleContextSizeChange}
-                  max={131072} // 128k
+                  max={256 * 1024} // 256k
                   min={512}
                   step={512}
                   className="w-full"

@@ -6,7 +6,7 @@ from typing import Any
 import aiohttp
 import filetype
 from fastapi import HTTPException
-from kreuzberg import extract_bytes
+from kreuzberg import extract_bytes, ExtractionConfig
 from kreuzberg._mime_types import EXT_TO_MIME_TYPE
 from loguru import logger
 
@@ -29,7 +29,10 @@ class LocalParser:
 
             kind = filetype.guess_extension(pdf_bytes)
             mime_type = EXT_TO_MIME_TYPE.get("." + kind, "text/plain")
-            result = await extract_bytes(pdf_bytes, mime_type=mime_type)
+
+            # Explicitly disable OCR for this certain parser
+            config = ExtractionConfig(ocr_backend=None)
+            result = await extract_bytes(pdf_bytes, mime_type=mime_type, config=config)
             fulltext = result.content
 
             return fulltext

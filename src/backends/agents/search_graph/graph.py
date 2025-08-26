@@ -7,9 +7,9 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.graph import END, StateGraph
 from loguru import logger
 
-from ...tools.read_tools import search_documents
+from ...tools.chroma.read_tools import search_documents
 from ...tools.utils import get_abstract_by_keys
-from ...tools.web import meta_search_tool
+from ...tools.web import web_meta_search_tool
 from ..utils import truncate_think_tag
 from .nlp import compute_tfidf_scores, tokenize
 from .prompts import get_rank_prompt, get_search_query_prompt
@@ -109,7 +109,7 @@ class SearchAgentGraph:
         """Run meta-search over academic sources using the generated query."""
         query = state.generated_query or state.current_user_message_content
         try:
-            results = await meta_search_tool(query)
+            results = await web_meta_search_tool(query)
         except Exception as e:
             logger.warning(f"Meta search failed: {e}")
             results = []
@@ -121,12 +121,14 @@ class SearchAgentGraph:
         if not state.search_results:
             return {"search_results": []}
         docs = [f"{r.get('title', '')}\n{r.get('abstract', '')}" for r in state.search_results]
+        
         # Use user question + mentioned titles as query terms
         q_terms = tokenize(
             state.current_user_message_content + " " + " ".join([md.get("title", "") for md in state.mention_documents])
         )
         scores = compute_tfidf_scores(q_terms, docs)
         ranked = sorted(zip(scores, state.search_results), key=lambda x: x[0], reverse=True)
+        
         # keep top-N for LLM rerank
         filtered = [r for _, r in ranked[: min(self.prefilter_top_n, len(ranked))]]
         logger.info(f"SearchGraph.prefilter → kept {len(filtered)} of {len(state.search_results)}")

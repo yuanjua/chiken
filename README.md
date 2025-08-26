@@ -1,52 +1,34 @@
 # ChiKen
 
-**ChiKen (知見)** is your private, AI-powered research assistant. It seamlessly connects your Zotero library with local and cloud-based Large Language Models (LLMs), transforming your personal research collection into an interactive knowledge base.
+ChiKen is your private, AI-powered research assistant that transforms your Zotero library into an interactive knowledge base. 
 
 ## ✨ Features
 
-*   **AI-Powered Research Assistant**: Integrate your Zotero library with LLMs through vector stores and MCP. Perform search, review, and summarization of your research documents right on your desktop.
+ChiKen connects your Zotero library to LLM clients like Claude Desktop through **RAG** and **MCP**. Just make a few clicks, your AI clients are ready to search over your documents.
 
-*   **Flexible LLM Backend**: Powered by LiteLLM, ChiKen supports a wide range of LLMs, including local instances via Ollama and major cloud providers.
-
-*   **Privacy by Design**: All processing can be performed locally, so your research data never leaves your machine. No need to log in or rely on external servers.
-
-*   **Effortless Knowledge Base Construction**: A simple click to turn your Zotero collections into a vector knowledge base. Brew a coffee ☕️, and your knowledge base would be ready before the first sip.
-
-*   **Simple RAG Search**: Use Retrieval-Augmented Generation to query across your knowledge bases. Find the most relevant document chunks to feed LLMs based on semantic meaning, not just keywords.
-
-*   **One-Click MCP Server for Your Knowledge**: An internal server that lets any preferred LLM access your deep knowledge bases. No code set up! 
-
-*   **🚀 No-Code Setup**: Designed to work out-of-the-box. Just install, point it to your LLM endpoint, and start exploring your research in a whole new way.
+ChiKen chat interface offers three agents to interact with your research: **Chat** for conversational Q&A with your documents, **Search** for searching papers online, and **Deep Research** for comprehensive multi-source investigations that combine your personal library with web search to generate detailed research reports.
 
 
-## 🚀 Quick Start
+## 💫 Quick Start
 
-**Installation**: Simply install choosing the installer for your platform in [Releases](https://github.com/yuanjua/chiken/releases).
+Download and install ChiKen from [Releases](https://github.com/yuanjua/chiken/releases) for your platform. PDF and plain text work out of the box; other formats require [Pandoc](https://pandoc.org/) 2+.
 
-**Dependency**: PDF and plain text files are supported. Other file types (.docx, etc.) requires [pandoc](https://pandoc.org/) to be installed in your system.
+We recommend [Ollama](https://ollama.com/) for local LLMs—easy setup for chat and embeddings. Works well with `ollama/gemma3:27b`. For now this is the only recommended and tested model. You can then expose your knowledge bases to advanced LLM clients like Claude Desktop through the built-in MCP server.
 
-We recommend [Ollama](https://ollama.com/) for simple chat and embedding—it’s easy to install and use. You can then expose the knowledge bases to any other Advanced LLM (e.g. Claude Desktop) through the built-in MCP server.
+All data stays local. API keys are stored in your OS keychain:❓You may see prompts asking for keyring access; knowledge bases live on your disk.
 
-❓Prompts asking for keyring access: ChiKen stores your API-KEYs in your system if there are any.
-
-For more detailed instructions, check out the [Getting Started Guide](GETTING_STARTED.md).
+For more detailed instructions, see:
+- [Getting Started Guide](./docs/GETTING_STARTED.md)
+- [Claude MCP Setup (with demo)](./docs/mcp-claude-desktop-setup.md)
+- [Built-in Agents: Chat, Search, Deep Research](./docs/built-in-agents.md)
 
 ![Get Started](assets/get-started.png)
 
-Fun fact: hit the free-tier limit after 2 messages — perfect timing for a short demo! 🤗
-
-https://github.com/user-attachments/assets/7a20f4da-a76b-4e3b-8e10-43b7927d67b4
-
 ## 🗺️ What's Next
 
-*   **More Agents**: Introducing dedicated agents for in-depth Search, Review, and Summarization tasks.
-*   **Smarter Document Parsing**: Integrate both lightweight and powerful options designed for literature processing.
-*   **Multi-Modal Understanding**: Take advantage of the latest advancements in local multi-modal LLMs to handle images, PDFs, and more.
-*   **More MCP Tools**: Expanding the capabilities of the internal server with new tools for deeper knowledge interaction.
-*   **New Architecture**: Planning a shift to PyTauri from the current FastAPI sidecar in Tauri to eliminate IPC and improve performance.
-*   ⁉️**More Tests**: Adding comprehensive tests.
+ChiKen continues to evolve with enhanced document parsing (both lightweight and powerful options for literature), expanded MCP tools for deeper knowledge interaction, and architectural improvements including a planned shift to PyTauri for better performance.
 
-## 🤝 Contributing
+## 🌱 Contributing
 
 We’re excited to welcome contributions!  
 A dedicated section with contribution guidelines and instructions is **coming soon**.  
@@ -68,9 +50,4 @@ ChiKen is designed to complete the journey Zotero begins: the mastery of informa
 ## License
 
 The code is licensed under the [MIT License](LICENSE).
-
-The ChiKen logo is licensed under [CC BY 4.0](./LICENSE-LOGO).
-
-## Disclaimer
-
-ChiKen is an independent project and is not affiliated with or endorsed by Zotero or the Corporation for Digital Scholarship. Zotero is a registered trademark of the Corporation for Digital Scholarship.
+The logo is licensed under [CC BY 4.0](./LICENSE-LOGO).

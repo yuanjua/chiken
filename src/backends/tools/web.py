@@ -385,7 +385,11 @@ async def meta_search_papers(
             "openalex": openalex_search,
         }
 
-        use_sources = sources or list(provider_funcs.keys())
+        if not sources or "all" in sources :
+            use_sources = list(provider_funcs.keys())
+        else:
+            use_sources = sources
+
         task_pairs = [
             (name, provider_funcs[name](query, session, per_source_limit))
             for name in use_sources
@@ -447,7 +451,7 @@ async def meta_search_papers(
         return []
 
 
-async def meta_search_tool(
+async def web_meta_search_tool(
     query: str,
     *,
     sources: list[str] | None = None,
@@ -459,16 +463,23 @@ async def meta_search_tool(
     Agents can make subsequent web search tool calls utilizing retrieved urls.
 
     Args:
-      query: Natural-language or keyword query describing the topic/papers.
-      sources: Optional subset of providers to query. Supported values:
-        ["arxiv", "crossref", "pubmed", "semantic_scholar", "openalex"].
+      query: str, Natural-language or keyword query describing the topic/papers.
+      sources: list[str] | None, Optional, subset of providers to query. Supported values:
+        ["all", "arxiv", "crossref", "pubmed", "semantic_scholar", "openalex"].
         Defaults to all when not provided.
-      year_range: Optional (start_year, end_year). Use None to leave side open,
+      year_range: tuple[int | None, int | None] | None, Optional, (start_year, end_year). Use None to leave side open,
         e.g., (2020, None) → from 2020 onward; (None, 2022) → up to 2022.
-      per_source_limit: Max results to request from each provider.
+      per_source_limit: int, Max results to request from each provider. Defaults to 10.
 
     Returns:
       List of normalized result dicts (title, abstract, url, source, authors, date, venue).
+      - title: str
+      - abstract: str
+      - url: str  # url of the paper
+      - source: str  # one of arxiv|crossref|pubmed|semantic_scholar|openalex
+      - authors: list[str]  # list of authors
+      - date: str  # year of publication
+      - venue: str  # venue of publication
     """
     async with aiohttp.ClientSession(timeout=DEFAULT_TIMEOUT, headers=DEFAULT_HEADERS) as session:
         return await meta_search_papers(
@@ -483,7 +494,7 @@ async def meta_search_tool(
 # --- Main Execution ---
 async def main():
     query = "large language models"
-    results = await meta_search_tool(
+    results = await web_meta_search_tool(
         query,
         sources=["arxiv", "semantic_scholar", "openalex", "pubmed", "crossref"],
         year_range=(2020, None),
