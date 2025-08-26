@@ -106,7 +106,7 @@ async def clarify_with_user(state: AgentState, config: RunnableConfig) -> Comman
     clarification_model = get_llm_for_task(
         config,
         schema=ClarifyWithUser,
-        max_tokens=2048,
+        max_tokens=configurable.clarification_max_tokens,
         retries=configurable.max_structured_output_retries
     )
     
@@ -154,7 +154,7 @@ async def write_research_brief(state: AgentState, config: RunnableConfig) -> Com
     research_model = get_llm_for_task(
         config,
         schema=ResearchQuestion,
-        max_tokens=4096,
+        max_tokens=configurable.research_brief_max_tokens,
         retries=configurable.max_structured_output_retries
     )
     
@@ -215,6 +215,7 @@ async def supervisor(state: SupervisorState, config: RunnableConfig) -> Command[
         tools=lead_researcher_tools,
         config_dict={},
         retries=configurable.max_structured_output_retries,
+        max_tokens=configurable.tool_wrapper_max_tokens,
     )
     
     supervisor_messages = state.get("supervisor_messages", [])
@@ -384,6 +385,7 @@ async def researcher(state: ResearcherState, config: RunnableConfig) -> Command[
         tools=tools,
         config_dict={},
         retries=configurable.max_structured_output_retries,
+        max_tokens=configurable.tool_wrapper_max_tokens,
     )
     
     messages = [SystemMessage(content=researcher_prompt)] + researcher_messages
@@ -547,7 +549,7 @@ async def researcher_tools(state: ResearcherState, config: RunnableConfig) -> Co
 async def compress_research(state: ResearcherState, config: RunnableConfig):
     """Compress and synthesize research findings into a concise, structured summary."""
     configurable = Configuration.from_runnable_config(config)
-    synthesizer_model = get_llm_for_task(config, max_tokens=8192 * 2)
+    synthesizer_model = get_llm_for_task(config, max_tokens=configurable.compression_max_tokens)
     
     researcher_messages = state.get("researcher_messages", [])
     researcher_messages.append(HumanMessage(content=compress_research_simple_human_message))
@@ -615,7 +617,7 @@ async def final_report_generation(state: AgentState, config: RunnableConfig):
                 date=get_today_str()
             )
             
-            report_model = get_llm_for_task(config, max_tokens=20000)
+            report_model = get_llm_for_task(config, max_tokens=configurable.final_report_max_tokens)
             final_report = await report_model.ainvoke([
                 HumanMessage(content=final_report_prompt)
             ])

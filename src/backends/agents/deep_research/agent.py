@@ -68,14 +68,10 @@ class DeepResearchAgent(BaseAgent):
                 "callbacks": [langfuse_handler] if langfuse_handler else None,
             }
 
-            # Include conversation history for better clarification context
+            # Include conversation history for better context
             all_messages = []
-            
-            # Add session history if available
             if session and hasattr(session, 'messages') and session.messages:
                 all_messages.extend(session.messages)
-            
-            # Add the current user message
             all_messages.append(HumanMessage(content=message))
             
             graph_input = {"messages": all_messages}
@@ -84,23 +80,22 @@ class DeepResearchAgent(BaseAgent):
 
             start_time = asyncio.get_event_loop().time()
             final_state = None
-            clarification_emitted = False
             async for event in self.graph.astream(graph_input, runnable_config):
                 final_state = event
                 if isinstance(event, dict):
+                    # Stream the AI message from the clarification node if it exists
                     if "clarify_with_user" in event:
-                        # Stream the AI clarification message(s) directly to the client
                         try:
                             node_out = event.get("clarify_with_user", {})
                             messages = node_out.get("messages") or []
                             for msg in messages:
-                                content = getattr(msg, "content", None)
-                                if content:
+                                if content := getattr(msg, "content", None):
                                     yield {"type": "content", "data": str(content)}
-                                    clarification_emitted = True
                         except Exception:
                             pass
                         yield {"type": "progress", "data": {"message": "Clarification stage complete"}}
+                    
+                    # Yield progress updates for other major stages
                     if "write_research_brief" in event:
                         yield {"type": "progress", "data": {"message": "Research brief prepared"}}
                     if "research_supervisor" in event:
@@ -108,8 +103,9 @@ class DeepResearchAgent(BaseAgent):
                     if "final_report_generation" in event:
                         yield {"type": "progress", "data": {"message": "Final report generation in progress"}}
 
-            # If we asked for clarification and streamed it, stop here (no final report yet)
-            if clarification_emitted:
+            # After the stream, check the final state to determine the outcome
+            if final_state and list(final_state.keys()) == ["clarify_with_user"]:
+                # The graph ended at the clarification step, so we are done for now.
                 return
 
             execution_time = asyncio.get_event_loop().time() - start_time
@@ -117,16 +113,15 @@ class DeepResearchAgent(BaseAgent):
 
             final_report = None
             if isinstance(final_state, dict):
-                final_report = (
-                    final_state.get("final_report")
-                    or final_state.get("finalize", {}).get("final_report")
-                    or final_state.get("compressed_research")
-                )
+                # Safely access the final report from the potentially nested final state
+                report_node_output = final_state.get("final_report_generation", final_state)
+                final_report = report_node_output.get("final_report")
+
             if final_report:
                 yield {"type": "content", "data": final_report}
 
         except Exception as e:
-            logger.error(f"Error in DeepResearchAgent (v2): {e}", exc_info=True)
+            logger.error(f"Error in DeepResearchAgent: {e}", exc_info=True)
             yield {"type": "content", "data": f"An error occurred during research: {e}"}
 
 

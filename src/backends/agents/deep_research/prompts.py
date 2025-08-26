@@ -88,7 +88,7 @@ When you are completely satisfied with the research findings returned from the t
 You have access to three main tools:
 1. **ConductResearch**: Delegate research tasks to specialized sub-agents
 2. **ResearchComplete**: Indicate that research is complete
-3. (Reflection is system-managed and injected automatically during the workflow)
+3. **think_tool**: For reflection and strategic planning during research
 
 **CRITICAL: Reflection is handled automatically by the workflow; focus on planning and delegating ConductResearch appropriately.**
 </Available Tools>
@@ -170,9 +170,9 @@ By tailoring your queries, you will guide the search tools to retrieve the most 
 **Note: Reflection and thinking is handled automatically by the graph - just focus on calling research tools.**
 
 **TOOL STRATEGY:**
-- **search_documents**: Use first to check internal knowledge base for relevant information
-- **web_meta_search_tool**: Use for current events, recent information, or when knowledge base lacks coverage  
-- **get_document_by_id**: Use when you find specific document references that need detailed content
+- **search_documents**: Use first to check local internal knowledge base for relevant information, better to interleave with web_meta_search_tool
+- **web_meta_search_tool**: Use at least once for current events, recent information, especially when knowledge base lacks coverage
+- **get_document_by_id**: Use when you find specific document references that need detailed content (require the key from the search_documents results)
 </Available Tools>
 
 <Instructions>

@@ -17,6 +17,7 @@ import instructor
 import litellm
 from loguru import logger
 from ...llm.chatlitellm import LLM
+from .configuration import Configuration
 
 
 class ToolCall(BaseModel):
@@ -47,6 +48,7 @@ class ToolWrapperLLM:
         tools: List[BaseTool] = None,
         parallel_tool_calls: bool = True,
         tool_choice: str = "auto",
+        max_tokens: int = None,
     ):
         """
         Initialize the tool wrapper.
@@ -56,12 +58,14 @@ class ToolWrapperLLM:
             tools: List of LangChain tools to bind
             parallel_tool_calls: Whether to allow parallel tool calls
             tool_choice: Tool choice strategy ("auto", "any", "none", or tool name)
+            max_tokens: Maximum tokens for model responses (defaults to config value)
         """
         # Convert model name for LiteLLM compatibility
         self.model = model
         self.tools = tools or []
         self.parallel_tool_calls = parallel_tool_calls
         self.tool_choice = tool_choice
+        self.max_tokens = max_tokens or Configuration().tool_wrapper_max_tokens
         
         # Filter out think_tool since we'll handle that deterministically
         self.research_tools = [t for t in self.tools if getattr(t, 'name', '') != 'think_tool']
@@ -164,7 +168,7 @@ Think step by step:
                 model=self.model,
                 messages=formatted_messages,
                 response_model=ToolChoice,
-                max_tokens=4096,
+                max_tokens=self.max_tokens,
                 temperature=0.1
             )
             
@@ -220,7 +224,8 @@ def bind_tools_with_instructor(
     model: str,
     tools: List[BaseTool],
     parallel_tool_calls: bool = True,
-    tool_choice: str = "auto"
+    tool_choice: str = "auto",
+    max_tokens: int = None
 ) -> ToolWrapperLLM:
     """
     Create a tool-wrapped LLM instance that can be used as a drop-in replacement 
@@ -231,6 +236,7 @@ def bind_tools_with_instructor(
         tools: List of LangChain tools to bind
         parallel_tool_calls: Whether to allow parallel tool execution
         tool_choice: Tool choice strategy
+        max_tokens: Maximum tokens for model responses
     
     Returns:
         ToolWrapperLLM instance that can make tool calls
@@ -252,7 +258,8 @@ def bind_tools_with_instructor(
         model=model,
         tools=tools,
         parallel_tool_calls=parallel_tool_calls,
-        tool_choice=tool_choice
+        tool_choice=tool_choice,
+        max_tokens=max_tokens
     )
 
 def normalize_tool_calls(tool_calls):
@@ -297,15 +304,16 @@ def normalize_tool_calls(tool_calls):
     
     return normalized_calls
 
-def create_model_with_tools(llm: LLM, tools: List[BaseTool], config_dict: dict, retries: int = 3):
+def create_model_with_tools(llm: LLM, tools: List[BaseTool], config_dict: dict, retries: int = 3, max_tokens: int = None):
     """
     Create a model with tools, using smart fallback from native to wrapper.
     
     Args:
-        model_name: The model name (e.g., "ollama:gemma3:27b")
+        llm: The LLM instance
         tools: List of tools to bind
         config_dict: Model configuration dictionary
         retries: Number of retries for structured output
+        max_tokens: Maximum tokens for tool wrapper (if used)
     
     Returns:
         Model with tools bound, either natively or via wrapper
@@ -331,6 +339,7 @@ def create_model_with_tools(llm: LLM, tools: List[BaseTool], config_dict: dict, 
                 model=model_name,
                 tools=tools,
                 tool_choice="any",
+                max_tokens=max_tokens,
             )
             logger.info(f"Tool wrapper binding successful for {model_name}")
             return wrapper_model
