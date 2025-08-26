@@ -19,9 +19,9 @@ By entering model names, you'll be prompted to select a model from the provider.
 ### 2. Create Knowledge Bases
 **Note:** To use ChiKen with your local Zotero library, you must enable the Zotero Web API:
    - Open Zotero and go to:
-     - `Edit → Preferences → Advanced → General (tab)`
+     - `Preferences → Advanced`
    - Check the box:
-     - `☑️ Allow other applications on this computer to access data via the Zotero web API`
+     - `☑️ Allow other applications on this computer to communicate with Zotero`
 
 When Zotero is running on your computer, ChiKen can access your Zotero collections and items locally.
 
