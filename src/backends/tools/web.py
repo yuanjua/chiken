@@ -5,11 +5,22 @@ import xml.etree.ElementTree as ET
 from collections.abc import Awaitable, Callable
 from typing import Any
 from urllib.parse import quote_plus
-
+import ssl, certifi
+import sys
 import aiohttp
 import feedparser
 from loguru import logger
 
+def get_ssl_context():
+    # If running from PyInstaller bundle
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS  # temp unpack dir
+        cafile = os.path.join(base_path, "certifi", "cacert.pem")
+    else:
+        cafile = certifi.where()
+    return ssl.create_default_context(cafile=cafile)
+
+ssl_context = get_ssl_context()
 
 def _reconstruct_abstract(inverted_index: dict[str, list[int]]) -> str:
     """Reconstructs a readable abstract from OpenAlex's inverted index."""
@@ -450,7 +461,6 @@ async def meta_search_papers(
         logger.error(f"An error occurred in meta_search_papers: {e}")
         return []
 
-
 async def web_meta_search_tool(
     query: str,
     *,
@@ -481,7 +491,10 @@ async def web_meta_search_tool(
       - date: str  # year of publication
       - venue: str  # venue of publication
     """
-    async with aiohttp.ClientSession(timeout=DEFAULT_TIMEOUT, headers=DEFAULT_HEADERS) as session:
+    connector=aiohttp.TCPConnector(ssl=ssl_context)
+    async with aiohttp.ClientSession(timeout=DEFAULT_TIMEOUT, 
+                                     headers=DEFAULT_HEADERS, 
+                                     connector=connector) as session:
         return await meta_search_papers(
             query,
             session,

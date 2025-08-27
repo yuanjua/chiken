@@ -22,6 +22,8 @@ tiktoken_ext_datas = collect_data_files('tiktoken_ext')
 # FastMCP metadata
 fastmcp_datas = copy_metadata('fastmcp')
 
+import certifi
+
 a = Analysis(
     ['main.py'],
     pathex=[],
@@ -32,6 +34,7 @@ a = Analysis(
         *tiktoken_datas,
         *tiktoken_ext_datas,
         *fastmcp_datas,
+        (certifi.where(), 'certifi'),
     ],
     hiddenimports=[
         # ChromaDB hidden imports to fix PyInstaller issues
