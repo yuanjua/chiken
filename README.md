@@ -9,6 +9,10 @@ ChiKen connects your Zotero library to LLM clients like Claude Desktop through *
 ChiKen chat interface offers three agents to interact with your research: **Chat** for conversational Q&A with your documents, **Search** for searching papers online, and **Deep Research** for comprehensive multi-source investigations that combine your personal library with web search to generate detailed research reports.
 
 
+https://github.com/user-attachments/assets/983e3e05-6f37-46ba-a19e-69f7207c4e83
+
+
+
 ## 💫 Quick Start
 
 Download and install ChiKen from [Releases](https://github.com/yuanjua/chiken/releases) for your platform. PDF and plain text work out of the box; other formats require [Pandoc](https://pandoc.org/) 2+. [Zotero](https://www.zotero.org/) 7+ is also required for enabling local API.
