@@ -60,8 +60,8 @@ export default function WindowTitlebar({
     };
   }, []);
 
-  // Only show custom titlebar on Windows and Linux
-  if (currentPlatform !== 'windows' && currentPlatform !== 'linux') {
+  // Only show custom titlebar on Windows
+  if (currentPlatform === 'macos') {
     return (
       <div 
       data-tauri-drag-region
@@ -70,6 +70,10 @@ export default function WindowTitlebar({
         {/* Empty titlebar - draggable area */}
       </div>
     );
+  }
+
+  if (currentPlatform === 'linux') {
+    return null; // No titlebar on macOS and Linux - use native titlebar
   }
 
   const handleMinimize = async () => {
