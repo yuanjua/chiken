@@ -442,7 +442,7 @@ export async function updateSystemConfig(updates: {
 }): Promise<any> {
   const url = `${PYTHON_BACKEND_URL}/config/`;
   const response = await fetch(url, {
-    method: "POST",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
   });

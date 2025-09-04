@@ -42,6 +42,7 @@ yarn-error.log*
 *.env
 
 .vscode/
+.playwright-mcp
 
 # vercel
 .vercel
