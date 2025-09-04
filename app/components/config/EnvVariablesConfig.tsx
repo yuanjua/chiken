@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Minus, Plus, Key } from "lucide-react";
+import { Minus, Plus, Key, Eye, EyeOff } from "lucide-react";
 import { EnvVarInfoCard } from "./EnvVarInfoCard";
 import { useTranslations } from "next-intl";
 
@@ -29,6 +29,7 @@ export function EnvVariablesConfig() {
   const [newName, setNewName] = useState("");
   const [newValue, setNewValue] = useState("");
   const [recommendedVars, setRecommendedVars] = useState<{ name: string; description?: string }[]>([]);
+  const [showValues, setShowValues] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -65,7 +66,8 @@ export function EnvVariablesConfig() {
         for (const varName of allVarNames) {
           const description = recMap.get(varName);
           const isStored = storedNames.includes(varName);
-          finalUnified.push({ name: varName, value: "", description, present: isStored, originalName: varName });
+          const actualValue = isStored ? storedDict[varName] || "" : "";
+          finalUnified.push({ name: varName, value: actualValue, description, present: isStored, originalName: varName });
         }
 
         setItems(finalUnified.filter(it => !!it.present));
@@ -94,7 +96,7 @@ export function EnvVariablesConfig() {
       setItems((prev) => {
         const exists = prev.some((p) => p.name === name);
         if (exists) {
-          return prev.map((p) => p.name === name ? { ...p, present: true, value: "" } : p);
+          return prev.map((p) => p.name === name ? { ...p, present: true, value } : p);
         } else {
           const desc = recommendedVars.find(r => r.name === name)?.description;
           return [...prev, { name, value: "", present: true, description: desc, originalName: name }];
@@ -164,7 +166,7 @@ export function EnvVariablesConfig() {
         
         // Update local state to show the var is present
         const desc = recommendedVars.find(r => r.name === name)?.description;
-        setItems((prev) => [...prev, { name, value: '', description: desc, present: true, originalName: name }]);
+        setItems((prev) => [...prev, { name, value: newValue, description: desc, present: true, originalName: name }]);
       }
       setNewName("");
       setNewValue("");
@@ -177,14 +179,34 @@ export function EnvVariablesConfig() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Key className="h-4 w-4" />
-        <Label className="text-sm font-medium"> {t("title")} </Label>
-        <EnvVarInfoCard
-          envVars={recommendedVars}
-          title={t("recommended")}
-          compact={true}
-        />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Key className="h-4 w-4" />
+          <Label className="text-sm font-medium"> {t("title")} </Label>
+          <EnvVarInfoCard
+            envVars={recommendedVars}
+            title={t("recommended")}
+            compact={true}
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowValues(!showValues)}
+          className="h-6 px-2 text-xs"
+        >
+          {showValues ? (
+            <>
+              <EyeOff className="h-3 w-3 mr-1" />
+              Hide
+            </>
+          ) : (
+            <>
+              <Eye className="h-3 w-3 mr-1" />
+              Show
+            </>
+          )}
+        </Button>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -227,13 +249,13 @@ export function EnvVariablesConfig() {
                   </td>
                   <td className="px-2 py-1 align-middle">
                     <Input
-                      placeholder="value"
+                      placeholder={it.value ? (showValues ? "Enter value" : "****** (click to edit)") : "Enter value"}
                       value={it.value}
                       onChange={(e) => updateValue(it.name, e.target.value)}
                       onBlur={(e) => persistValue(it.name, e.currentTarget.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                       className="font-mono text-xs h-8 px-2 w-full bg-muted text-foreground placeholder:text-muted-foreground border border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none rounded-none"
-                      type="text"
+                      type={showValues ? "text" : "password"}
                     />
                   </td>
                   <td className="px-2 py-1 align-middle">
