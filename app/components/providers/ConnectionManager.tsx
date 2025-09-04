@@ -4,6 +4,7 @@ import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useState, createContext, useContext } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { checkBackendHealth, listSessions } from "@/lib/api-client";
+import { TauriService } from "@/lib/tauri-service";
 import {
   isBackendReadyAtom,
   isBackendLoadingAtom,
@@ -125,6 +126,20 @@ export function ConnectionManager({ children }: ConnectionManagerProps) {
           setConnectionStatus("Connected!");
           setIsBackendLoading(false);
           setIsBackendReady(true);
+          
+          // In Tauri, reload the page to ensure proper rendering
+          const tauriService = TauriService.getInstance();
+          if (tauriService.isTauriMode()) {
+            const hasReloaded = sessionStorage.getItem('tauri_backend_reloaded');
+            if (!hasReloaded) {
+              console.log("🔄 Tauri detected: Reloading page after backend connection");
+              sessionStorage.setItem('tauri_backend_reloaded', 'true');
+              (globalThis as any).window.location.reload();
+            } else {
+              console.log("✅ Tauri: Already reloaded, continuing normally");
+            }
+          }
+          
           return;
         }
       } catch (error) {

@@ -1,176 +1,47 @@
-"""
-User Configuration API
-
-Provides API endpoints for managing user configuration (single-user system).
-"""
-
 import os
 from datetime import datetime
+from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException
 from loguru import logger
-from pydantic import BaseModel, Field
 
+from .models import UserConfig
 
-# Import with lazy loading to avoid circular imports
+router = APIRouter()
+
 def get_manager_singleton():
     from ..manager_singleton import ManagerSingleton
-
     return ManagerSingleton
 
 
-# Router setup
-router = APIRouter(prefix="/config", tags=["Configuration"])
+@router.get("/")
+async def get_config() -> Dict[str, Any]:
+    ManagerSingleton = get_manager_singleton()
+    config = await ManagerSingleton.get_user_config()
+    
+    return {
+        "success": True,
+        "config": config.model_dump(),
+        "config_id": config.config_id,
+        "updated_at": config.updated_at,
+    }
 
 
-# Request/Response Models
-class ConfigUpdateRequest(BaseModel):
-    """Request model for configuration updates."""
-
-    provider: str | None = None
-    model_name: str | None = None
-    temperature: float | None = None
-    num_ctx: int | None = None
-    base_url: str | None = None
-
-    # Core configuration only - no API keys here
-    system_prompt: str | None = None
-    max_history_length: int | None = None
-    memory_update_frequency: int | None = None
-    embed_model: str | None = None
-    embed_provider: str | None = None
-    max_tokens: int | None = None
-    pdf_parser_type: str | None = None
-    pdf_parser_url: str | None = None
-    search_engine: str | None = None
-    search_endpoint: str | None = None
-    search_api_key: str | None = None
-    mcp_transport: str | None = None
-    mcp_port: int | None = None
-    active_knowledge_base_ids: list[str] | None = None
-    use_custom_endpoints: bool | None = None
-    chunk_size: int | None = None
-    chunk_overlap: int | None = None
-    enable_reference_filtering: bool | None = None
-
-
-class ConfigResponse(BaseModel):
-    """Response model for configuration."""
-
-    config_id: str
-    provider: str
-    model_name: str
-    base_url: str
-
-    # Core configuration only - API keys handled separately
-    temperature: float
-    num_ctx: int
-    max_tokens: int | None = None
-    embed_model: str
-    embed_provider: str
-    system_prompt: str | None = None
-    max_history_length: int
-    memory_update_frequency: int
-    pdf_parser_type: str
-    pdf_parser_url: str | None = None
-    search_engine: str
-    search_endpoint: str | None = None
-    search_api_key: str | None = None
-    mcp_transport: str
-    mcp_port: int | None = None
-    active_knowledge_base_ids: list[str]
-    created_at: str
-    updated_at: str
-    use_custom_endpoints: bool
-    chunk_size: int
-    chunk_overlap: int
-    enable_reference_filtering: bool
-    # Computed fields
-    provider_type: str = Field(description="Provider type derived from model_name")
-
-
-# Configuration Endpoints (Single User)
-@router.get("/", response_model=ConfigResponse)
-async def get_current_configuration():
-    """Get the current system configuration."""
+@router.put("/")
+async def update_config(update_data: Dict[str, Any]):
+    ManagerSingleton = get_manager_singleton()
+    
     try:
-        ManagerSingleton = get_manager_singleton()
-        user_config = await ManagerSingleton.get_user_config()
-
-        # Generate current timestamp for missing values
-        current_timestamp = datetime.now().isoformat()
-
-        # Compute effective base_url from env for display
-        effective_base_url = None
-        try:
-            if (user_config.provider or "").lower() == "ollama":
-                effective_base_url = os.environ.get("OLLAMA_API_BASE")
-            elif (user_config.provider or "").lower() == "openai":
-                effective_base_url = os.environ.get("OPENAI_BASE_URL")
-        except Exception:
-            effective_base_url = None
-
-        return ConfigResponse(
-            config_id=user_config.config_id or "default",
-            provider=user_config.provider,
-            model_name=user_config.model_name,
-            base_url=(effective_base_url or user_config.base_url or ""),
-            temperature=user_config.temperature,
-            num_ctx=user_config.num_ctx,
-            max_tokens=user_config.max_tokens,
-            embed_model=user_config.embed_model,
-            embed_provider=user_config.embed_provider,
-            system_prompt=user_config.system_prompt,
-            max_history_length=user_config.max_history_length,
-            memory_update_frequency=user_config.memory_update_frequency,
-            pdf_parser_type=user_config.pdf_parser_type,
-            pdf_parser_url=user_config.pdf_parser_url,
-            search_engine=user_config.search_engine,
-            search_endpoint=user_config.search_endpoint,
-            search_api_key=user_config.search_api_key,
-            mcp_transport=user_config.mcp_transport,
-            mcp_port=user_config.mcp_port,
-            active_knowledge_base_ids=user_config.active_knowledge_base_ids or [],
-            created_at=user_config.created_at or current_timestamp,
-            updated_at=user_config.updated_at or current_timestamp,
-            use_custom_endpoints=user_config.use_custom_endpoints,
-            chunk_size=user_config.chunk_size,
-            chunk_overlap=user_config.chunk_overlap,
-            enable_reference_filtering=user_config.enable_reference_filtering,
-            provider_type=user_config.provider_type,
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get configuration: {str(e)}")
-
-
-@router.post("/")
-async def update_current_configuration(request: ConfigUpdateRequest):
-    """Update the current system configuration."""
-    try:
-        # Filter out None values
-        updates = {k: v for k, v in request.model_dump().items() if v is not None}
-
-        if not updates:
-            raise HTTPException(status_code=400, detail="No valid updates provided")
-
-        # Update configuration
-        ManagerSingleton = get_manager_singleton()
-        updated_config = await ManagerSingleton.update_user_config(**updates)
-
-        # Load + reconcile environment variables after configuration update
-        try:
-            from .keychain_loader import load_env_from_keychain
-
-            load_env_from_keychain(updated_config)
-            await ManagerSingleton.save_user_config(updated_config)
-        except Exception as sync_error:
-            logger.error(f"Environment load from keychain failed during config update: {sync_error}")
-
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No update data provided")
+        
+        updated_config = await ManagerSingleton.update_user_config(**update_data)
+        
         return {
             "success": True,
             "message": "Configuration updated successfully",
+            "config": updated_config.model_dump(),
             "config_id": updated_config.config_id,
-            "updated_fields": list(updates.keys()),
             "updated_at": updated_config.updated_at,
         }
     except Exception as e:
@@ -178,17 +49,28 @@ async def update_current_configuration(request: ConfigUpdateRequest):
 
 
 @router.post("/reload")
-async def reload_configuration():
-    """Reload the current configuration from database and sync environment variables."""
+async def reload_config():
     try:
+        from .keychain_loader import load_env_from_keychain
+        from .encryption import get_cached_encryption_key, decrypt_env_vars, apply_env_vars_to_process
+        
         ManagerSingleton = get_manager_singleton()
         reloaded_config = await ManagerSingleton.reload_user_config()
 
-        # Also reload environment variables from keychain
         try:
-            from .keychain_loader import load_env_from_keychain
-
             env_dict = load_env_from_keychain(reloaded_config)
+            
+            try:
+                db_manager = await ManagerSingleton.get_database_manager()
+                encrypted_data = await db_manager.get_encrypted_env_vars()
+                if encrypted_data:
+                    encryption_key = get_cached_encryption_key()
+                    encrypted_vars = decrypt_env_vars(encrypted_data, encryption_key)
+                    apply_env_vars_to_process(encrypted_vars)
+                    logger.info(f"Loaded {len(encrypted_vars)} encrypted environment variables")
+            except Exception as enc_error:
+                logger.warning(f"Failed to load encrypted env vars: {enc_error}")
+            
             await ManagerSingleton.save_user_config(reloaded_config)
         except Exception as env_error:
             logger.warning(f"Failed to reload env vars during config reload: {env_error}")
@@ -205,8 +87,119 @@ async def reload_configuration():
 
 @router.get("/env-vars")
 async def get_env_vars():
-    """Get keyring stored environment variables."""
     from .keychain_loader import get_env_dict_from_keychain
 
     vars = get_env_dict_from_keychain()
     return list(vars.keys())
+
+
+@router.post("/env-vars/encrypted")
+async def get_encrypted_env_vars(request: dict):
+    try:
+        from .encryption import decrypt_env_vars, get_cached_encryption_key, apply_env_vars_to_process
+        
+        encryption_key = request.get("encryption_key") or get_cached_encryption_key()
+        logger.debug(f"Getting env vars with encryption key: {encryption_key[:8] if encryption_key else 'None'}...")
+        
+        from ..manager_singleton import ManagerSingleton
+        db_manager = await ManagerSingleton.get_database_manager()
+        encrypted_data = await db_manager.get_encrypted_env_vars()
+        
+        if not encrypted_data:
+            logger.debug("No encrypted data found, returning empty dict")
+            return {}
+        
+        logger.debug(f"Found encrypted data, decrypting...")
+        env_vars = decrypt_env_vars(encrypted_data, encryption_key)
+        apply_env_vars_to_process(env_vars)
+        logger.debug(f"Successfully decrypted {len(env_vars)} environment variables")
+        return env_vars
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"Failed to get encrypted env vars: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to get encrypted environment variables: {str(e)}")
+
+
+@router.put("/env-vars/encrypted")
+async def set_encrypted_env_var(request: dict):
+    from .encryption import encrypt_env_vars, decrypt_env_vars, get_cached_encryption_key, apply_env_vars_to_process
+    
+    try:
+        name = request.get("name")
+        value = request.get("value")
+        encryption_key = request.get("encryption_key") or get_cached_encryption_key()
+        logger.debug(f"Setting env var {name} with encryption key: {encryption_key[:8] if encryption_key else 'None'}...")
+        
+        if not name or value is None:
+            raise HTTPException(status_code=400, detail="Name and value are required")
+        
+        from ..manager_singleton import ManagerSingleton
+        db_manager = await ManagerSingleton.get_database_manager()
+        existing_encrypted_data = await db_manager.get_encrypted_env_vars()
+        
+        if existing_encrypted_data:
+            try:
+                env_vars = decrypt_env_vars(existing_encrypted_data, encryption_key)
+            except Exception as e:
+                logger.error(f"Failed to decrypt existing data: {e}")
+                raise HTTPException(status_code=400, detail="Invalid encryption key")
+        else:
+            env_vars = {}
+        
+        env_vars[name] = value
+        encrypted_data = encrypt_env_vars(env_vars, encryption_key)
+        await db_manager.save_encrypted_env_vars(encrypted_data)
+        apply_env_vars_to_process({name: value})
+        
+        return {"success": True, "message": f"Environment variable '{name}' set successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        logger.error(f"Failed to set encrypted env var: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to set encrypted environment variable: {str(e)}")
+
+
+@router.delete("/env-vars/encrypted")
+async def delete_encrypted_env_var(request: dict):
+    from .encryption import encrypt_env_vars, decrypt_env_vars, get_cached_encryption_key
+    
+    try:
+        name = request.get("name")
+        encryption_key = request.get("encryption_key") or get_cached_encryption_key()
+        
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        
+        from ..manager_singleton import ManagerSingleton
+        db_manager = await ManagerSingleton.get_database_manager()
+        existing_encrypted_data = await db_manager.get_encrypted_env_vars()
+        
+        if not existing_encrypted_data:
+            raise HTTPException(status_code=404, detail="No environment variables found")
+        
+        try:
+            env_vars = decrypt_env_vars(existing_encrypted_data, encryption_key)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid encryption key")
+        
+        if name not in env_vars:
+            raise HTTPException(status_code=404, detail=f"Environment variable '{name}' not found")
+        
+        del env_vars[name]
+        os.environ.pop(name, None)
+        
+        encrypted_data = encrypt_env_vars(env_vars, encryption_key)
+        await db_manager.save_encrypted_env_vars(encrypted_data)
+        
+        return {"success": True, "message": f"Environment variable '{name}' deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete encrypted env var: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete encrypted environment variable: {str(e)}")

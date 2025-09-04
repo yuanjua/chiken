@@ -74,9 +74,11 @@ function CollectionTreeItem({
           )}
         </div>
 
-        {/* Folder Icon */}
+        {/* Icon (Library or Folder) */}
         <div className="mr-2">
-          {hasChildren ? (
+          {node.nodeType === "library" ? (
+            <Database className="h-4 w-4" />
+          ) : hasChildren ? (
             node.isExpanded ? (
               <FolderOpen className="h-4 w-4 text-muted-foreground" />
             ) : (
@@ -105,12 +107,21 @@ function CollectionTreeItem({
 
         {/* Collection Name and Item Count */}
         <div className="flex-1 min-w-0">
-          <span className="text-sm truncate" title={node.name}>
+          <span 
+            className={`truncate ${
+              node.nodeType === "library" 
+                ? "text-sm font-semibold" 
+                : "text-sm"
+            }`} 
+            title={node.name}
+          >
             {node.name}
           </span>
-          <span className="text-xs text-muted-foreground ml-1">
-            ({node.numItems})
-          </span>
+          {node.numItems > 0 && (
+            <span className={`text-xs ml-1`}>
+              ({node.numItems})
+            </span>
+          )}
         </div>
       </div>
 
@@ -219,48 +230,98 @@ export default function ZoteroCollections({
   }, [selectedKeys.size, Array.from(selectedKeys).sort().join(',')]); // More specific dependency
 
   const buildCollectionTree = (collections: ZoteroCollection[]): TreeNode[] => {
-    // Create a map of all collections
-    const collectionMap = new Map<string, TreeNode>();
-
-    // First, create all nodes
+    // Group collections by library
+    const libraryGroups = new Map<string, ZoteroCollection[]>();
+    
     collections.forEach((collection) => {
-      collectionMap.set(collection.key, {
-        key: collection.key,
-        name: collection.data.name,
-        numItems: collection.meta.numItems,
-        children: [],
-        isExpanded: false,
-        isSelected: false,
-        isPartiallySelected: false,
-        parentKey: collection.data.parentCollection || null,
-      });
+      const libraryKey = `${collection.library.type}-${collection.library.id}`;
+      if (!libraryGroups.has(libraryKey)) {
+        libraryGroups.set(libraryKey, []);
+      }
+      libraryGroups.get(libraryKey)!.push(collection);
     });
 
-    // Then, build the tree structure
+    // Build tree with library nodes at the top level
     const rootNodes: TreeNode[] = [];
 
-    collectionMap.forEach((node) => {
-      if (node.parentKey && collectionMap.has(node.parentKey)) {
-        // This is a child node
-        const parent = collectionMap.get(node.parentKey)!;
-        parent.children.push(node);
-      } else {
-        // This is a root node
-        rootNodes.push(node);
-      }
-    });
+    libraryGroups.forEach((libraryCollections, libraryKey) => {
+      if (libraryCollections.length === 0) return;
+      
+      const library = libraryCollections[0].library;
+      
+      // Create collections map for this library
+      const collectionMap = new Map<string, TreeNode>();
+      
+      // Create collection nodes
+      libraryCollections.forEach((collection) => {
+        collectionMap.set(collection.key, {
+          key: collection.key,
+          name: collection.data.name,
+          numItems: collection.meta.numItems,
+          children: [],
+          isExpanded: false,
+          isSelected: false,
+          isPartiallySelected: false,
+          parentKey: collection.data.parentCollection || null,
+          nodeType: "collection",
+          libraryInfo: { type: library.type, id: library.id, name: library.name },
+        });
+      });
 
-    // Sort children by name
-    const sortChildren = (nodes: TreeNode[]) => {
-      nodes.sort((a, b) => a.name.localeCompare(b.name));
-      nodes.forEach((node) => {
-        if (node.children.length > 0) {
-          sortChildren(node.children);
+      // Build collection hierarchy within this library
+      const libraryRootCollections: TreeNode[] = [];
+      
+      collectionMap.forEach((node) => {
+        if (node.parentKey && collectionMap.has(node.parentKey)) {
+          // This is a child collection
+          const parent = collectionMap.get(node.parentKey)!;
+          parent.children.push(node);
+        } else {
+          // This is a root collection in this library
+          libraryRootCollections.push(node);
         }
       });
-    };
 
-    sortChildren(rootNodes);
+      // Sort collections within library
+      const sortChildren = (nodes: TreeNode[]) => {
+        nodes.sort((a, b) => a.name.localeCompare(b.name));
+        nodes.forEach((node) => {
+          if (node.children.length > 0) {
+            sortChildren(node.children);
+          }
+        });
+      };
+      
+      sortChildren(libraryRootCollections);
+
+      // Library nodes should have 0 items to prevent double-counting 
+      // when library nodes get selected alongside their collection children
+      const libraryNode: TreeNode = {
+        key: libraryKey,
+        name: library.name,
+        numItems: 0, // Set to 0 to prevent double-counting with collections
+        children: libraryRootCollections,
+        isExpanded: true, // Libraries expanded by default
+        isSelected: false,
+        isPartiallySelected: false,
+        parentKey: null,
+        nodeType: "library",
+        libraryInfo: { type: library.type, id: library.id, name: library.name },
+      };
+
+      rootNodes.push(libraryNode);
+    });
+
+    // Sort libraries (user libraries first, then groups alphabetically)
+    rootNodes.sort((a, b) => {
+      const aIsUser = a.libraryInfo?.type === "user";
+      const bIsUser = b.libraryInfo?.type === "user";
+      
+      if (aIsUser && !bIsUser) return -1;
+      if (!aIsUser && bIsUser) return 1;
+      
+      return a.name.localeCompare(b.name);
+    });
     
     // Update selection states based on current selectedKeys
     return updateSelectionStates(rootNodes, selectedKeys);

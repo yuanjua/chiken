@@ -58,7 +58,7 @@
     "refFilteringHelp": "Filter out references and citations from document content using Naive Bayes, trained on narrow domain of data. Plan to broaden and refine its dataset.",
     "selectedCollections": "Selected Collections",
     "collectionsCount": "{count, plural, one {# collection} other {# collections}}",
-    "items": "{count, plural, one {item} other {items}}",
+    "items": "{count, plural, one {# item} other {# items}}",
     "noCollectionsSelected": "No collections selected. Please select collections from the sidebar.",
     "cancel": "Cancel",
     "creating": "Creating...",

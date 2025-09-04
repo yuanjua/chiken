@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// Frontend loads and persists environment variables via Tauri keychain only
+
 import * as secretStore from "@/lib/secret-store";
 import { reloadBackendConfig } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Minus, Plus, Key } from "lucide-react";
+import { Minus, Plus, Key, Eye, EyeOff } from "lucide-react";
 import { EnvVarInfoCard } from "./EnvVarInfoCard";
 import { useTranslations } from "next-intl";
 
@@ -29,6 +29,7 @@ export function EnvVariablesConfig() {
   const [newName, setNewName] = useState("");
   const [newValue, setNewValue] = useState("");
   const [recommendedVars, setRecommendedVars] = useState<{ name: string; description?: string }[]>([]);
+  const [showValues, setShowValues] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -56,16 +57,21 @@ export function EnvVariablesConfig() {
         const recMap = new Map<string, string | undefined>();
         for (const r of recommended) recMap.set(r.name, r.description);
 
-        // Load stored variables from keychain only
+        // Load stored variables from encrypted DB
         const storedDict = await secretStore.getEnvVars();
-        const storedNames = Object.keys(storedDict);
+        // Filter out the encryption key from display
+        const filteredStoredDict = Object.fromEntries(
+          Object.entries(storedDict).filter(([key]) => key !== "CHIKEN_ENV_ENCRYPTION_KEY")
+        );
+        const storedNames = Object.keys(filteredStoredDict);
         const allVarNames = new Set([...recommended.map(r => r.name), ...storedNames]);
 
         const finalUnified: (EditableVar & { originalName?: string })[] = [];
         for (const varName of allVarNames) {
           const description = recMap.get(varName);
           const isStored = storedNames.includes(varName);
-          finalUnified.push({ name: varName, value: "", description, present: isStored, originalName: varName });
+          const actualValue = isStored ? filteredStoredDict[varName] || "" : "";
+          finalUnified.push({ name: varName, value: actualValue, description, present: isStored, originalName: varName });
         }
 
         setItems(finalUnified.filter(it => !!it.present));
@@ -80,10 +86,8 @@ export function EnvVariablesConfig() {
 
   const persistValue = async (name: string, value: string) => {
     try {
-      // Persist to keychain JSON
       await secretStore.setEnvVar(name, value);
       
-      // Trigger backend reload to sync os.environ immediately
       try {
         await reloadBackendConfig();
       } catch (e) {
@@ -94,7 +98,7 @@ export function EnvVariablesConfig() {
       setItems((prev) => {
         const exists = prev.some((p) => p.name === name);
         if (exists) {
-          return prev.map((p) => p.name === name ? { ...p, present: true, value: "" } : p);
+          return prev.map((p) => p.name === name ? { ...p, present: true, value } : p);
         } else {
           const desc = recommendedVars.find(r => r.name === name)?.description;
           return [...prev, { name, value: "", present: true, description: desc, originalName: name }];
@@ -114,21 +118,23 @@ export function EnvVariablesConfig() {
   const onRemoveByName = async (name: string) => {
     setItems((prev) => prev.filter((it) => it.name !== name));
     if (name) {
-      // Remove locally
       try {
         await secretStore.deleteEnvVar(name);
         
-        // Trigger backend reload to sync os.environ immediately
         try {
           await reloadBackendConfig();
         } catch (e) {
           console.warn('Failed to trigger backend env reload after delete:', e);
         }
       } catch {}
-      // Refresh from keychain
+      // Refresh from encrypted DB
       try {
         const storedDict = await secretStore.getEnvVars();
-        const storedNames = Object.keys(storedDict);
+        // Filter out the encryption key from display
+        const filteredStoredDict = Object.fromEntries(
+          Object.entries(storedDict).filter(([key]) => key !== "CHIKEN_ENV_ENCRYPTION_KEY")
+        );
+        const storedNames = Object.keys(filteredStoredDict);
         const finalUnified: (EditableVar & { originalName?: string })[] = [];
         const allVarNames = new Set([...
           recommendedVars.map(r => r.name),
@@ -137,7 +143,8 @@ export function EnvVariablesConfig() {
         for (const varName of allVarNames) {
           const description = recommendedVars.find(r => r.name === varName)?.description;
           const isStored = storedNames.includes(varName);
-          finalUnified.push({ name: varName, value: "", description, present: isStored, originalName: varName });
+          const actualValue = isStored ? filteredStoredDict[varName] || "" : "";
+          finalUnified.push({ name: varName, value: actualValue, description, present: isStored, originalName: varName });
         }
         setItems(finalUnified.filter(it => !!it.present));
       } catch (e: any) {
@@ -152,10 +159,8 @@ export function EnvVariablesConfig() {
     setSaving(true);
     try {
       if (newValue && newValue.trim()) {
-        // Save to keychain JSON
         await secretStore.setEnvVar(name, newValue);
         
-        // Trigger backend reload to sync os.environ immediately  
         try {
           await reloadBackendConfig();
         } catch (e) {
@@ -164,7 +169,7 @@ export function EnvVariablesConfig() {
         
         // Update local state to show the var is present
         const desc = recommendedVars.find(r => r.name === name)?.description;
-        setItems((prev) => [...prev, { name, value: '', description: desc, present: true, originalName: name }]);
+        setItems((prev) => [...prev, { name, value: newValue, description: desc, present: true, originalName: name }]);
       }
       setNewName("");
       setNewValue("");
@@ -177,14 +182,34 @@ export function EnvVariablesConfig() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Key className="h-4 w-4" />
-        <Label className="text-sm font-medium"> {t("title")} </Label>
-        <EnvVarInfoCard
-          envVars={recommendedVars}
-          title={t("recommended")}
-          compact={true}
-        />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Key className="h-4 w-4" />
+          <Label className="text-sm font-medium"> {t("title")} </Label>
+          <EnvVarInfoCard
+            envVars={recommendedVars}
+            title={t("recommended")}
+            compact={true}
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowValues(!showValues)}
+          className="h-6 px-2 text-xs"
+        >
+          {showValues ? (
+            <>
+              <EyeOff className="h-3 w-3 mr-1" />
+              Hide
+            </>
+          ) : (
+            <>
+              <Eye className="h-3 w-3 mr-1" />
+              Show
+            </>
+          )}
+        </Button>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -227,13 +252,13 @@ export function EnvVariablesConfig() {
                   </td>
                   <td className="px-2 py-1 align-middle">
                     <Input
-                      placeholder="value"
+                      placeholder={it.value ? (showValues ? "Enter value" : "****** (click to edit)") : "Enter value"}
                       value={it.value}
                       onChange={(e) => updateValue(it.name, e.target.value)}
                       onBlur={(e) => persistValue(it.name, e.currentTarget.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                       className="font-mono text-xs h-8 px-2 w-full bg-muted text-foreground placeholder:text-muted-foreground border border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none rounded-none"
-                      type="text"
+                      type={showValues ? "text" : "password"}
                     />
                   </td>
                   <td className="px-2 py-1 align-middle">

@@ -117,6 +117,16 @@ class DatabaseManager:
                 )
             """)
 
+            # Create encrypted environment variables table
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS encrypted_env_vars (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    encrypted_data TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
             await db.commit()
 
         self._initialized = True
@@ -536,6 +546,34 @@ class DatabaseManager:
             cursor = await db.execute("DELETE FROM sessions_metadata WHERE session_id = ?", (session_id,))
             await db.commit()
             return cursor.rowcount > 0
+
+    # ===== Encrypted Environment Variables =====
+
+    async def get_encrypted_env_vars(self) -> str | None:
+        """Get encrypted environment variables JSON string."""
+        if not self._initialized:
+            await self.initialize()
+
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute("SELECT encrypted_data FROM encrypted_env_vars ORDER BY id DESC LIMIT 1")
+            row = await cursor.fetchone()
+            return row[0] if row else None
+
+    async def save_encrypted_env_vars(self, encrypted_data: str):
+        """Save encrypted environment variables JSON string."""
+        if not self._initialized:
+            await self.initialize()
+
+        now = datetime.utcnow().isoformat()
+        async with aiosqlite.connect(self.db_path) as db:
+            # Delete existing data (we only keep one record)
+            await db.execute("DELETE FROM encrypted_env_vars")
+            # Insert new data
+            await db.execute(
+                "INSERT INTO encrypted_env_vars (encrypted_data, created_at, updated_at) VALUES (?, ?, ?)",
+                (encrypted_data, now, now)
+            )
+            await db.commit()
 
 
 # Compatibility wrapper for existing code
