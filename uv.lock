@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'darwin'",
@@ -479,11 +479,12 @@ wheels = [
 
 [[package]]
 name = "chiken"
-version = "0.2.1"
+version = "0.2.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiosqlite" },
     { name = "chromadb" },
+    { name = "cryptography" },
     { name = "duckduckgo-search" },
     { name = "fastapi", extra = ["all"] },
     { name = "fastmcp" },
@@ -529,6 +530,7 @@ dev = [
 requires-dist = [
     { name = "aiosqlite", specifier = ">=0.21.0" },
     { name = "chromadb", specifier = "==1.0.15" },
+    { name = "cryptography", specifier = ">=43.0.0" },
     { name = "duckduckgo-search", specifier = ">=8.0.2" },
     { name = "fastapi", extras = ["all"], specifier = ">=0.115.12" },
     { name = "fastmcp", specifier = ">=2.10.5" },

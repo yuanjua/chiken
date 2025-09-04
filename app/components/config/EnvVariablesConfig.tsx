@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// Frontend loads and persists environment variables via Tauri keychain only
+
 import * as secretStore from "@/lib/secret-store";
 import { reloadBackendConfig } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -57,16 +57,20 @@ export function EnvVariablesConfig() {
         const recMap = new Map<string, string | undefined>();
         for (const r of recommended) recMap.set(r.name, r.description);
 
-        // Load stored variables from keychain only
+        // Load stored variables from encrypted DB
         const storedDict = await secretStore.getEnvVars();
-        const storedNames = Object.keys(storedDict);
+        // Filter out the encryption key from display
+        const filteredStoredDict = Object.fromEntries(
+          Object.entries(storedDict).filter(([key]) => key !== "CHIKEN_ENV_ENCRYPTION_KEY")
+        );
+        const storedNames = Object.keys(filteredStoredDict);
         const allVarNames = new Set([...recommended.map(r => r.name), ...storedNames]);
 
         const finalUnified: (EditableVar & { originalName?: string })[] = [];
         for (const varName of allVarNames) {
           const description = recMap.get(varName);
           const isStored = storedNames.includes(varName);
-          const actualValue = isStored ? storedDict[varName] || "" : "";
+          const actualValue = isStored ? filteredStoredDict[varName] || "" : "";
           finalUnified.push({ name: varName, value: actualValue, description, present: isStored, originalName: varName });
         }
 
@@ -82,10 +86,8 @@ export function EnvVariablesConfig() {
 
   const persistValue = async (name: string, value: string) => {
     try {
-      // Persist to keychain JSON
       await secretStore.setEnvVar(name, value);
       
-      // Trigger backend reload to sync os.environ immediately
       try {
         await reloadBackendConfig();
       } catch (e) {
@@ -116,21 +118,23 @@ export function EnvVariablesConfig() {
   const onRemoveByName = async (name: string) => {
     setItems((prev) => prev.filter((it) => it.name !== name));
     if (name) {
-      // Remove locally
       try {
         await secretStore.deleteEnvVar(name);
         
-        // Trigger backend reload to sync os.environ immediately
         try {
           await reloadBackendConfig();
         } catch (e) {
           console.warn('Failed to trigger backend env reload after delete:', e);
         }
       } catch {}
-      // Refresh from keychain
+      // Refresh from encrypted DB
       try {
         const storedDict = await secretStore.getEnvVars();
-        const storedNames = Object.keys(storedDict);
+        // Filter out the encryption key from display
+        const filteredStoredDict = Object.fromEntries(
+          Object.entries(storedDict).filter(([key]) => key !== "CHIKEN_ENV_ENCRYPTION_KEY")
+        );
+        const storedNames = Object.keys(filteredStoredDict);
         const finalUnified: (EditableVar & { originalName?: string })[] = [];
         const allVarNames = new Set([...
           recommendedVars.map(r => r.name),
@@ -139,7 +143,8 @@ export function EnvVariablesConfig() {
         for (const varName of allVarNames) {
           const description = recommendedVars.find(r => r.name === varName)?.description;
           const isStored = storedNames.includes(varName);
-          finalUnified.push({ name: varName, value: "", description, present: isStored, originalName: varName });
+          const actualValue = isStored ? filteredStoredDict[varName] || "" : "";
+          finalUnified.push({ name: varName, value: actualValue, description, present: isStored, originalName: varName });
         }
         setItems(finalUnified.filter(it => !!it.present));
       } catch (e: any) {
@@ -154,10 +159,8 @@ export function EnvVariablesConfig() {
     setSaving(true);
     try {
       if (newValue && newValue.trim()) {
-        // Save to keychain JSON
         await secretStore.setEnvVar(name, newValue);
         
-        // Trigger backend reload to sync os.environ immediately  
         try {
           await reloadBackendConfig();
         } catch (e) {

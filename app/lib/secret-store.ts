@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
+const PYTHON_BACKEND_URL = process.env.NEXT_PUBLIC_PYTHON_BACKEND_URL || "http://localhost:8009";
+
 function isTauri(): boolean {
   try {
     return (
@@ -13,27 +15,42 @@ function isTauri(): boolean {
 
 export async function getEnvVars(): Promise<Record<string, string>> {
   if (!isTauri()) return {};
-  try {
-    const result = (await invoke("get_secret")) as string | null;
-    if (!result) return {};
-    return JSON.parse(result);
-  } catch {
-    return {};
+  
+  const response = await fetch(`${PYTHON_BACKEND_URL}/config/env-vars/encrypted`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    throw new Error(`Backend error: ${response.statusText}`);
   }
+  return (await response.json()) as unknown as Record<string, string>;
 }
 
 export async function setEnvVar(name: string, value: string): Promise<void> {
   if (!isTauri()) return;
-  const envVars = await getEnvVars();
-  envVars[name] = value;
-  await invoke("set_secret", { value: JSON.stringify(envVars) });
+  
+  const response = await fetch(`${PYTHON_BACKEND_URL}/config/env-vars/encrypted`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, value }),
+  });
+  if (!response.ok) {
+    throw new Error(`Backend error: ${response.statusText}`);
+  }
 }
 
 export async function deleteEnvVar(name: string): Promise<void> {
   if (!isTauri()) return;
-  const envVars = await getEnvVars();
-  delete envVars[name];
-  await invoke("set_secret", { value: JSON.stringify(envVars) });
+  
+  const response = await fetch(`${PYTHON_BACKEND_URL}/config/env-vars/encrypted`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  if (!response.ok) {
+    throw new Error(`Backend error: ${response.statusText}`);
+  }
 }
 
 export async function getEnvVarNames(): Promise<string[]> {
@@ -41,3 +58,4 @@ export async function getEnvVarNames(): Promise<string[]> {
   return Object.keys(envVars);
 }
 
+export { isTauri };

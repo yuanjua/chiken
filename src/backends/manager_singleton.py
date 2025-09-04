@@ -1,9 +1,3 @@
-"""
-Manager Singleton
-
-Simplified singleton pattern for managing global instances without heavy configuration management.
-"""
-
 import os
 
 from loguru import logger
@@ -13,14 +7,13 @@ from .database import DatabaseManager
 from .sessions.manager import SessionManager
 from .user_config.models import UserConfig, create_chat_config
 
-# logger is imported from loguru
-
 
 class ManagerSingleton:
     _database_manager: DatabaseManager | None = None
     _session_manager: SessionManager | None = None
     _user_config: UserConfig | None = None
     _initialized: bool = False
+    _encryption_key: str | None = None
 
     @classmethod
     async def initialize(cls):
@@ -65,24 +58,25 @@ class ManagerSingleton:
                 logger.error(f"Error saving default config: {save_error}")
                 # Continue with in-memory config
 
-        # Load and reconcile environment variables with keychain
         try:
             from .user_config.keychain_loader import load_env_from_keychain
+            from .user_config.encryption import sync_keyring_to_encrypted_db, get_or_create_encryption_key
 
+            cls._encryption_key = get_or_create_encryption_key()
+            logger.info("✅ Encryption key loaded and cached")
+
+            await sync_keyring_to_encrypted_db()
             load_env_from_keychain(cls._user_config)
-            # Persist env_keys if they changed
+            
             config_dict = cls._user_config.model_dump()
             await cls._database_manager.save_user_config("default", config_dict)
         except Exception as e:
             logger.error(f"Error loading environment variables from keychain: {e}")
 
-        # Initialize SessionManager
         cls._session_manager = SessionManager(user_config=cls._user_config, db_path=db_path)
         logger.info("✅ SessionManager initialized.")
 
-        # Ensure default knowledge base exists
         await cls._ensure_default_knowledge_base()
-
         cls._initialized = True
         logger.info("✅ ManagerSingleton initialized successfully.")
 
@@ -115,6 +109,11 @@ class ManagerSingleton:
             cls._session_manager.user_config = config
             # Clear agent cache to force recreation with new config
             cls._session_manager.agents.clear()
+
+    @classmethod
+    def get_encryption_key(cls) -> str | None:
+        """Get the cached encryption key."""
+        return cls._encryption_key
 
     @classmethod
     async def update_user_config(cls, **updates) -> UserConfig:
