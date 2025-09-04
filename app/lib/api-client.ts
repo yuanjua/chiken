@@ -289,6 +289,16 @@ export async function getChatGraphHealth(): Promise<any> {
 
 // ===== Zotero =====
 
+export interface ZoteroLibrary {
+  type: "user" | "group";
+  id: string;
+  name: string;
+  links?: {
+    self?: { href: string; type: string };
+    alternate?: { href: string; type: string };
+  };
+}
+
 export interface ZoteroCollection {
   key: string;
   data: {
@@ -299,7 +309,7 @@ export interface ZoteroCollection {
     numItems: number;
   };
   version: number;
-  library: any;
+  library: ZoteroLibrary;
 }
 
 export interface ZoteroCollectionsResponse {

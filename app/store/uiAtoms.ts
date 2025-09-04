@@ -78,6 +78,8 @@ export interface TreeNode {
   isSelected: boolean;
   isPartiallySelected: boolean;
   parentKey: string | null;
+  nodeType?: "library" | "collection"; // New field to distinguish library vs collection nodes
+  libraryInfo?: { type: "user" | "group"; id: string; name: string }; // Library metadata
 }
 
 // Custom storage for Set<string>
