@@ -51,7 +51,7 @@ export function EnvVariablesConfig() {
           { name: "ACADEMIC_MAILTO", description: t("descAcademicMailto") },
           { name: "SEMANTIC_SCHOLAR_API_KEY", description: t("descS2") },
           { name: "NCBI_API_KEY", description: t("descNCBI") },
-          { name: "HOSTED_VLLM_API_KEY", description: t("descHostedVLLM") }
+          { name: "HOSTED_VLLM_API_BASE", description: t("descHostedVLLM") }
         ];
 
         const recMap = new Map<string, string | undefined>();

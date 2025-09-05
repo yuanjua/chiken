@@ -15,5 +15,5 @@
   "descAcademicMailto": "Enter email to increase rate limit to academic search",
   "descS2": "Semantic Scholar API key to increase rate limit",
   "descNCBI": "NCBI/PubMed API key to increase rate limit",
-  "descHostedVLLM": "API key for Hosted VLLM service"
+  "descHostedVLLM": "API base url for Hosted VLLM service"
 }

@@ -29,14 +29,10 @@ export function SaveConfigButton({
   const saveProviderConfig = async () => {
     setIsSavingConfig(true);
     try {
-      // Save main configuration
-      let modelNameToSend = selectedModel.model;
-      if (!selectedModel.model.startsWith(selectedModel.provider + "/")) {
-        modelNameToSend = `${selectedModel.provider}/${selectedModel.model}`;
-      }
+      // Save main configuration - use model name as-is to allow custom names
       const updates: any = {
         provider: selectedModel.provider,
-        model_name: modelNameToSend,
+        model_name: selectedModel.model,
         temperature: selectedModel.temperature,
         num_ctx: selectedModel.numCtx || 4096,
         base_url: selectedModel.baseUrl,
