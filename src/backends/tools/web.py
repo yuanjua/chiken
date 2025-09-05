@@ -11,6 +11,8 @@ import aiohttp
 import feedparser
 from loguru import logger
 
+from .env_helper import get_env_var_on_demand
+
 def get_ssl_context():
     # If running from PyInstaller bundle
     if getattr(sys, 'frozen', False):
@@ -48,12 +50,28 @@ def _get_academic_mailto() -> str:
     mailto_secret = os.getenv("ACADEMIC_MAILTO") or os.getenv("MAILTO")
     if mailto_secret:
         return mailto_secret
-    return os.getenv("ACADEMIC_MAILTO") or os.getenv("MAILTO") or "devnull@example.com"
+    return "devnull@example.com"
+
+
+async def _get_academic_mailto_async() -> str:
+    """Async version that loads from encrypted storage if needed."""
+    value = await get_env_var_on_demand("ACADEMIC_MAILTO")
+    if value:
+        return value
+    value = await get_env_var_on_demand("MAILTO")
+    if value:
+        return value
+    return "devnull@example.com"
 
 
 def _secret_or_env(name: str) -> str | None:
     """Return from environment variable only."""
     return os.getenv(name)
+
+
+async def _secret_or_env_async(name: str) -> str | None:
+    """Async version that loads from encrypted storage if needed."""
+    return await get_env_var_on_demand(name)
 
 
 def _build_headers_with_mailto(mailto: str | None) -> dict[str, str]:
@@ -185,11 +203,9 @@ async def crossref_search(query: str, session: aiohttp.ClientSession, limit: int
 
 
 async def pubmed_search(query: str, session: aiohttp.ClientSession, limit: int = 3) -> dict:
-    # No changes needed here, it's working well.
-    # Note: PubMed can return empty abstracts for some articles, which is expected.
-    # (Your output showed one "N/A", which this code handles).
+    # Updated to use async env loading
     try:
-        api_key = _secret_or_env("NCBI_API_KEY") or _secret_or_env("PUBMED_API_KEY")
+        api_key = await _secret_or_env_async("NCBI_API_KEY") or await _secret_or_env_async("PUBMED_API_KEY")
         search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&retmax={int(limit)}&term={quote_plus(query)}&retmode=json"
         if api_key:
             search_url += f"&api_key={quote_plus(api_key)}"
@@ -252,7 +268,7 @@ async def pubmed_search(query: str, session: aiohttp.ClientSession, limit: int =
 
 async def semantic_scholar_search(query: str, session: aiohttp.ClientSession, limit: int = 3) -> dict:
     """Semantic Scholar Graph API search with optional API key."""
-    api_key = _secret_or_env("SEMANTIC_SCHOLAR_API_KEY")
+    api_key = await _secret_or_env_async("SEMANTIC_SCHOLAR_API_KEY")
     headers = dict(DEFAULT_HEADERS)
     if api_key:
         headers["x-api-key"] = api_key
@@ -300,9 +316,9 @@ async def openalex_search(query: str, session: aiohttp.ClientSession, limit: int
     Returns:
         Dict: A dictionary with a "results" key containing a list of works.
     """
-    mailto = _get_academic_mailto()
+    mailto = await _get_academic_mailto_async()
 
-    # Use correct OpenAlex parameters and put mailto in header (query mailto currently returns 400)
+    # Use correct OpenAlex parameters and put mailto in header
     url = f"https://api.openalex.org/works?search={quote_plus(query)}&per_page={int(limit)}"
     headers = _build_headers_with_mailto(mailto)
 
