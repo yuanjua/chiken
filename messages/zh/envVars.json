@@ -15,5 +15,5 @@
   "descAcademicMailto": "填写邮箱以提升学术检索的速率限制",
   "descS2": "Semantic Scholar API 密钥以提升速率限制",
   "descNCBI": "NCBI/PubMed API 密钥以提升速率限制",
-  "descHostedVLLM": "Hosted VLLM 服务的 API 密钥"
+  "descHostedVLLM": "Hosted VLLM 服务的 API Base URL"
 }
