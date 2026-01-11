@@ -42,7 +42,9 @@ class LLM(ChatLiteLLM):
         async def _completion_with_retry(**kwargs: Any) -> Any:
             # Check for cancellation before making the request
             if cancellation_event and cancellation_event.is_set():
-                raise CancellationError("Request was cancelled before LLM call")
+                raise CancellationError("Request was cancelled before LLM call")                        
+            if self.model and self.model.startswith("openai/"):
+                return await self.client.acompletion(**kwargs)
             return await self.client.acompletion(num_ctx=self.num_ctx, **kwargs)
 
         return await _completion_with_retry(**kwargs)
