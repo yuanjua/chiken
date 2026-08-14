@@ -286,15 +286,19 @@ useEffect(() => {
     }
   };
 
-const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverlap: number; enableReferenceFiltering: boolean}>) => {
-  if (params.chunkSize !== undefined) setChunkSize(params.chunkSize);
-  if (params.chunkOverlap !== undefined) setChunkOverlap(params.chunkOverlap);
-  if (params.enableReferenceFiltering !== undefined) setEnableReferenceFiltering(params.enableReferenceFiltering);
-  await updateSystemConfig({
-    chunk_size: params.chunkSize !== undefined ? params.chunkSize : chunkSize,
-    chunk_overlap: params.chunkOverlap !== undefined ? params.chunkOverlap : chunkOverlap,
-    enable_reference_filtering: params.enableReferenceFiltering !== undefined ? params.enableReferenceFiltering : enableReferenceFiltering,
-  });
+  const handleParamChange = async (params: Partial<{chunkSize: number; chunkOverlap: number; enableReferenceFiltering: boolean}>) => {
+    if (params.chunkSize !== undefined) setChunkSize(params.chunkSize);
+    if (params.chunkOverlap !== undefined) setChunkOverlap(params.chunkOverlap);
+    if (params.enableReferenceFiltering !== undefined) setEnableReferenceFiltering(params.enableReferenceFiltering);
+    try {
+      await updateSystemConfig({
+        chunk_size: params.chunkSize !== undefined ? params.chunkSize : chunkSize,
+        chunk_overlap: params.chunkOverlap !== undefined ? params.chunkOverlap : chunkOverlap,
+        enable_reference_filtering: params.enableReferenceFiltering !== undefined ? params.enableReferenceFiltering : enableReferenceFiltering,
+      });
+    } catch (err) {
+      console.error("Failed to save config:", err);
+    }
 };
 
   const getDialogTitle = () => {
